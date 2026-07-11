@@ -7,20 +7,23 @@
 <style>
     body {
         margin: 0;
-        background: #e0e0e0;
+        background: #222;
         display: flex;
         justify-content: center;
-        align-items: flex-start;
+        align-items: center;
         min-height: 100vh;
-        overflow: hidden; /* biar ga ada scroll ganda */
+        overflow: auto; /* biar bisa scroll kalau di zoom */
+    }
+    #wrapper {
+        position: relative;
+        transform-origin: top left; /* titik zoom dari kiri atas */
     }
     #container {
         width: 768px;
         height: 1366px;
         position: relative;
         background: #fff;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        transform-origin: top center; /* zoom dari atas tengah */
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
     canvas { width: 100%; height: 100%; display: block; }
     #btnAudio {
@@ -42,30 +45,55 @@
         align-items: center;
         gap: 6px;
     }
-    #btnAudio:hover {
-        background: #fff;
-        color: #000;
+    #btnAudio:hover { background: #fff; color: #000; }
+    #btnAudio svg { width: 16px; height: 16px; fill: currentColor; }
+
+    /* Tombol kontrol zoom */
+    #zoomControls {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        display: flex;
+        gap: 10px;
     }
-    #btnAudio svg {
-        width: 16px;
-        height: 16px;
-        fill: currentColor;
+    #zoomControls button {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        border: none;
+        background: #000;
+        color: #fff;
+        font-size: 20px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     }
+    #zoomControls button:active { transform: scale(0.9); }
 </style>
 </head>
 <body>
-<div id="container">
-    <button id="btnAudio">
-        <svg viewBox="0 0 24 24">
-            <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
-        </svg>
-        Aktifkan Bel
-    </button>
-    <canvas id="paperBG"></canvas>
+<div id="wrapper">
+    <div id="container">
+        <button id="btnAudio">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+            </svg>
+            Aktifkan Bel
+        </button>
+        <canvas id="paperBG"></canvas>
+    </div>
+</div>
+
+<div id="zoomControls">
+    <button id="zoomOut">-</button>
+    <button id="zoomReset">1:1</button>
+    <button id="zoomIn">+</button>
 </div>
 
 <script>
 const canvas = document.getElementById('paperBG');
+const wrapper = document.getElementById('wrapper');
 const dpr = window.devicePixelRatio || 1;
 const scaleFactor = 1.5;
 const slideWidth = 768;
@@ -81,14 +109,24 @@ ctx.scale(scaleFactor * dpr, scaleFactor * dpr);
 const lineHeight = 24;
 const margin = 60;
 
-// AUTO RESIZE BIAR GA KEPOTONG
-function resizeContainer() {
-    const container = document.getElementById('container');
-    const scale = Math.min(window.innerWidth / 768, window.innerHeight / 1366);
-    container.style.transform = `scale(${scale})`;
+// ZOOM SYSTEM
+let currentScale = 1;
+function applyZoom() {
+    wrapper.style.transform = `scale(${currentScale})`;
 }
-window.addEventListener('resize', resizeContainer);
-resizeContainer();
+document.getElementById('zoomIn').onclick = () => { currentScale = Math.min(currentScale + 0.2, 3); applyZoom(); }
+document.getElementById('zoomOut').onclick = () => { currentScale = Math.max(currentScale - 0.2, 0.3); applyZoom(); }
+document.getElementById('zoomReset').onclick = () => { currentScale = 1; applyZoom(); }
+
+// Zoom pake scroll mouse + Ctrl
+window.addEventListener('wheel', (e) => {
+    if(e.ctrlKey) {
+        e.preventDefault();
+        if(e.deltaY < 0) currentScale = Math.min(currentScale + 0.1, 3);
+        else currentScale = Math.max(currentScale - 0.1, 0.3);
+        applyZoom();
+    }
+}, {passive: false});
 
 // AUDIO
 let audioCtx;
@@ -169,7 +207,7 @@ function checkNotification() {
     if(!audioEnabled) return;
     const now = new Date();
     const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const today = new Date(utc + (3600000 * 8)); // WITA
+    const today = new Date(utc + (3600000 * 8));
     const hariArr = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
     const namaHari = hariArr[today.getDay()];
     const currentMinutes = today.getHours() * 60 + today.getMinutes();
@@ -191,7 +229,7 @@ function drawText(text, x, y, fontSize, align = 'center', bold = false, color = 
 }
 function drawTable(hari, startX, startY, tableWidth){
     const jadwalAsli = dataJadwal[hari];
-    const jadwal = jadwalAsli.filter(row => row[1]!== "Pulang"); // hapus pulang dari tabel
+    const jadwal = jadwalAsli.filter(row => row[1]!== "Pulang");
 
     const rowHeight = 22;
     const colWidths = [75, tableWidth - 75 - 140, 140];
