@@ -3,22 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jadwal XI-KA</title>
+<title>Jadwal XI-Kimia Analisis</title>
 <style>
     body {
         margin: 0;
         background: #222;
         display: flex;
-        justify-content: flex-start; /* JANGAN center lagi */
+        justify-content: flex-start;
         align-items: flex-start;
         min-height: 100vh;
-        overflow: auto; /* biar bisa scroll ke semua arah */
-        padding: 20px; /* kasih jarak biar ga nempel pinggir */
+        overflow: auto;
+        padding: 20px;
         box-sizing: border-box;
     }
     #wrapper {
         position: relative;
-        transform-origin: top left; /* titik zoom dari kiri atas */
+        transform-origin: top left;
     }
     #container {
         width: 768px;
@@ -50,7 +50,6 @@
     #btnAudio:hover { background: #fff; color: #000; }
     #btnAudio svg { width: 16px; height: 16px; fill: currentColor; }
 
-    /* Tombol kontrol zoom */
     #zoomControls {
         position: fixed;
         bottom: 20px;
@@ -120,7 +119,6 @@ document.getElementById('zoomIn').onclick = () => { currentScale = Math.min(curr
 document.getElementById('zoomOut').onclick = () => { currentScale = Math.max(currentScale - 0.2, 0.2); applyZoom(); }
 document.getElementById('zoomReset').onclick = () => { currentScale = 1; applyZoom(); }
 
-// Zoom pake scroll mouse + Ctrl
 window.addEventListener('wheel', (e) => {
     if(e.ctrlKey) {
         e.preventDefault();
@@ -157,7 +155,6 @@ function playNote(freq, duration, delay = 0) {
     }, delay);
 }
 
-// Bell Sekolah Jepang
 function playJapaneseEnterBell() {
     playNote(523, 0.25, 0);
     playNote(587, 0.25, 250);
@@ -179,13 +176,13 @@ function playJapaneseHomeBell() {
     }
 }
 
-// DATA JADWAL
+// DATA JADWAL - SUDAH DIUBAH
 const dataJadwal = {
     "Senin": [["Waktu", "Mapel", "Pengajar"],["07.00 - 08.00", "Upacara Bendera", "Inspektur Upacara"],["08.00 - 08.35", "Bahasa Indonesia", "Delis Oktryana, S.Pd"],["08.35 - 09.10", "Bahasa Indonesia", "Delis Oktryana, S.Pd"],["09.10 - 09.45", "Bahasa Indonesia", "Delis Oktryana, S.Pd"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "PJOK", "Idham Ibrahim, S.Pd"],["10.35 - 11.10", "PJOK", "Idham Ibrahim, S.Pd"],["11.10 - 11.45", "Pendidikan Pancasila", "Dra. Nunung Catur Wijayanti"],["11.45 - 12.20", "Istirahat", ""],["12.20 - 13.00", "Pendidikan Pancasila", "Dra. Nunung Catur Wijayanti"],["13.00 - 13.35", "Pulang", ""]],
     "Selasa": [["Waktu", "Mapel", "Pengajar"],["07.15 - 08.00", "Analisis Kimia", "Widya Fismadita A,S.ST"],["08.00 - 08.35", "Analisis Kimia", "Widya Fismadita A,S.ST"],["08.35 - 09.10", "Analisis Kimia", "Widya Fismadita A,S.ST"],["09.10 - 09.45", "Analisis Kimia", "Widya Fismadita A,S.ST"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["10.35 - 11.10", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["11.10 - 11.45", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["11.45 - 12.20", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["12.20 - 13.00", "Istirahat", ""],["13.00 - 13.35", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["13.35 - 14.10", "Sejarah", "Fitrul Hadi Fauzi, S.Pd"],["14.10 - 14.45", "Sejarah", "Fitrul Hadi Fauzi, S.Pd"],["14.45 - 15.20", "Pulang", ""]],
     "Rabu": [["Waktu", "Mapel", "Pengajar"],["07.15 - 08.00", "Kokurikuler (Ibadah Pagi)", "Pembina Keagamaan"],["08.00 - 08.35", "Pendidikan Agama", "Erawati, S.Ag, M.Pd.I"],["08.35 - 09.10", "Pendidikan Agama", "Erawati, S.Ag, M.Pd.I"],["09.10 - 09.45", "Pendidikan Agama", "Erawati, S.Ag, M.Pd.I"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Analisis Bahan Anorganik", "Fatresia, S.Pd"],["10.35 - 11.10", "Analisis Bahan Anorganik", "Fatresia, S.Pd"],["11.10 - 11.45", "Analisis Bahan Anorganik", "Fatresia, S.Pd"],["11.45 - 12.20", "Analisis Bahan Anorganik", "Fatresia, S.Pd"],["12.20 - 13.00", "Istirahat", ""],["13.00 - 13.35", "Mapel Pilihan", "Widya Fismadita A,S.ST"],["13.35 - 14.10", "Mapel Pilihan", "Widya Fismadita A,S.ST"],["14.10 - 14.45", "Mapel Pilihan", "Widya Fismadita A,S.ST"],["14.45 - 15.20", "Pulang", ""]],
     "Kamis": [["Waktu", "Mapel", "Pengajar"],["07.15 - 08.00", "Matematika", "Didik Winarsih, S.Pd"],["08.00 - 08.35", "Matematika", "Didik Winarsih, S.Pd"],["08.35 - 09.10", "Matematika", "Didik Winarsih, S.Pd"],["09.10 - 09.45", "Bahasa Inggris", "Guritno Aditya Warman, S.Pd"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Bahasa Inggris", "Guritno Aditya Warman, S.Pd"],["10.35 - 11.10", "Bahasa Inggris", "Guritno Aditya Warman, S.Pd"],["11.10 - 11.45", "KIK", "Fatresia, S.Pd"],["11.45 - 12.20", "KIK", "Fatresia, S.Pd"],["12.20 - 13.00", "Istirahat", ""],["13.00 - 13.35", "KIK", "Fatresia, S.Pd"],["13.35 - 14.10", "KIK", "Fatresia, S.Pd"],["14.10 - 14.45", "KIK", "Fatresia, S.Pd"],["14.45 - 15.20", "Pulang", ""]],
-    "Jumat": [["Waktu", "Mapel", "Pengajar"],["07.00 - 08.00", "Kegiatan Jumat Sehat", "Pembina Jumat Sehat"],["08.00 - 08.35", "Analisis Titrimetri", "Eko Jayanti, S.Pd"],["08.35 - 09.10", "Analisis Titrimetri", "Eko Jayanti, S.Pd"],["09.10 - 09.45", "Analisis Titrimetri", "Eko Jayanti, S.Pd"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Analisis Titrimetri", "Eko Jayanti, S.Pd"],["10.35 - 11.10", "Analisis Titrimetri", "Eko Jayanti, S.Pd"],["11.10 - 11.20", "Pulang", ""]]
+    "Jumat": [["Waktu", "Mapel", "Pengajar"],["07.00 - 08.00", "Kegiatan Jumat Sehat", "Pembina Jumat Sehat"],["08.00 - 08.35", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["08.35 - 09.10", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["09.10 - 09.45", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["10.35 - 11.10", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["11.10 - 11.20", "Pulang", ""]]
 };
 
 let lastMapel = "";
