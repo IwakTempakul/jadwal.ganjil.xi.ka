@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jadwal XI-KA</title>
+<style>
+    body {
+        margin: 0;
+        background: #e0e0e0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+    }
+    #container {
+        width: 768px;
+        height: 1366px;
+        position: relative;
+        background: #fff;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+    #btnAudio {
+        position: absolute;
+        top: 150px;
+        right: 43px;
+        z-index: 999;
+        padding: 10px 16px;
+        background: #000;
+        color: #fff;
+        border: 2px solid #000;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: none;
+        transition: opacity 0.5s, background 0.2s, color 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    #btnAudio:hover {
+        background: #fff;
+        color: #000;
+    }
+    #btnAudio svg {
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
+    }
+</style>
+</head>
+<body>
+<div id="container">
+    <button id="btnAudio">
+        <svg viewBox="0 0 24 24">
+            <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+        </svg>
+        Aktifkan Bel
+    </button>
+    <canvas id="paperBG"></canvas>
+</div>
+
+<script>
+const canvas = document.getElementById('paperBG');
+const dpr = window.devicePixelRatio || 1;
+const scaleFactor = 1.5;
+const slideWidth = 768;
+const slideHeight = 1366;
+
+canvas.width = slideWidth * scaleFactor * dpr;
+canvas.height = slideHeight * scaleFactor * dpr;
+canvas.style.width = slideWidth + "px";
+canvas.style.height = slideHeight + "px";
+const ctx = canvas.getContext('2d');
+ctx.scale(scaleFactor * dpr, scaleFactor * dpr);
+
+const lineHeight = 24;
+const margin = 60;
+
+// AUDIO
+let audioCtx;
+let audioEnabled = false;
+document.getElementById('btnAudio').addEventListener('click', () => {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    audioEnabled = true;
+    const btn = document.getElementById('btnAudio');
+    btn.style.opacity = '0';
+    setTimeout(() => btn.style.display = 'none', 500);
+});
+
+function playNote(freq, duration, delay = 0) {
+    if(!audioEnabled) return;
+    setTimeout(() => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    }, delay);
+}
+
+// Bell Sekolah Jepang
+function playJapaneseEnterBell() {
+    playNote(523, 0.25, 0);
+    playNote(587, 0.25, 250);
+    playNote(659, 0.25, 500);
+    playNote(784, 0.5, 750);
+}
+function playJapaneseBreakBell() {
+    playNote(784, 0.3, 0);
+    playNote(659, 0.3, 300);
+    playNote(587, 0.3, 600);
+    playNote(523, 0.6, 900);
+}
+function playJapaneseHomeBell() {
+    const melody = [523, 659, 784, 1046];
+    for(let i = 0; i < 2; i++) {
+        melody.forEach((note, idx) => {
+            playNote(note, 0.3, (i * 1400) + (idx * 300));
+        });
+    }
+}
+
+// DATA JADWAL - "Pulang" tetap ada buat acuan notif
+const dataJadwal = {
+    "Senin": [["Waktu", "Mapel", "Pengajar"],["07.00 - 08.00", "Upacara Bendera", "Inspektur Upacara"],["08.00 - 08.35", "Bahasa Indonesia", "Delis Oktryana, S.Pd"],["08.35 - 09.10", "Bahasa Indonesia", "Delis Oktryana, S.Pd"],["09.10 - 09.45", "Bahasa Indonesia", "Delis Oktryana, S.Pd"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "PJOK", "Idham Ibrahim, S.Pd"],["10.35 - 11.10", "PJOK", "Idham Ibrahim, S.Pd"],["11.10 - 11.45", "Pendidikan Pancasila", "Dra. Nunung Catur Wijayanti"],["11.45 - 12.20", "Istirahat", ""],["12.20 - 13.00", "Pendidikan Pancasila", "Dra. Nunung Catur Wijayanti"],["13.00 - 13.35", "Pulang", ""]],
+    "Selasa": [["Waktu", "Mapel", "Pengajar"],["07.15 - 08.00", "Analisis Kimia", "Widya Fismadita A,S.ST"],["08.00 - 08.35", "Analisis Kimia", "Widya Fismadita A,S.ST"],["08.35 - 09.10", "Analisis Kimia", "Widya Fismadita A,S.ST"],["09.10 - 09.45", "Analisis Kimia", "Widya Fismadita A,S.ST"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["10.35 - 11.10", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["11.10 - 11.45", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["11.45 - 12.20", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["12.20 - 13.00", "Istirahat", ""],["13.00 - 13.35", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["13.35 - 14.10", "Sejarah", "Fitrul Hadi Fauzi, S.Pd"],["14.10 - 14.45", "Sejarah", "Fitrul Hadi Fauzi, S.Pd"],["14.45 - 15.20", "Pulang", ""]],
+    "Rabu": [["Waktu", "Mapel", "Pengajar"],["07.15 - 08.00", "Kokurikuler (Ibadah Pagi)", "Pembina Keagamaan"],["08.00 - 08.35", "Pendidikan Agama", "Erawati, S.Ag, M.Pd.I"],["08.35 - 09.10", "Pendidikan Agama", "Erawati, S.Ag, M.Pd.I"],["09.10 - 09.45", "Pendidikan Agama", "Erawati, S.Ag, M.Pd.I"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Analisis Bahan Anorganik", "Fatresia, S.Pd"],["10.35 - 11.10", "Analisis Bahan Anorganik", "Fatresia, S.Pd"],["11.10 - 11.45", "Analisis Bahan Anorganik", "Fatresia, S.Pd"],["11.45 - 12.20", "Analisis Bahan Anorganik", "Fatresia, S.Pd"],["12.20 - 13.00", "Istirahat", ""],["13.00 - 13.35", "Mapel Pilihan", "Widya Fismadita A,S.ST"],["13.35 - 14.10", "Mapel Pilihan", "Widya Fismadita A,S.ST"],["14.10 - 14.45", "Mapel Pilihan", "Widya Fismadita A,S.ST"],["14.45 - 15.20", "Pulang", ""]],
+    "Kamis": [["Waktu", "Mapel", "Pengajar"],["07.15 - 08.00", "Matematika", "Didik Winarsih, S.Pd"],["08.00 - 08.35", "Matematika", "Didik Winarsih, S.Pd"],["08.35 - 09.10", "Matematika", "Didik Winarsih, S.Pd"],["09.10 - 09.45", "Bahasa Inggris", "Guritno Aditya Warman, S.Pd"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Bahasa Inggris", "Guritno Aditya Warman, S.Pd"],["10.35 - 11.10", "Bahasa Inggris", "Guritno Aditya Warman, S.Pd"],["11.10 - 11.45", "KIK", "Fatresia, S.Pd"],["11.45 - 12.20", "KIK", "Fatresia, S.Pd"],["12.20 - 13.00", "Istirahat", ""],["13.00 - 13.35", "KIK", "Fatresia, S.Pd"],["13.35 - 14.10", "KIK", "Fatresia, S.Pd"],["14.10 - 14.45", "KIK", "Fatresia, S.Pd"],["14.45 - 15.20", "Pulang", ""]],
+    "Jumat": [["Waktu", "Mapel", "Pengajar"],["07.00 - 08.00", "Kegiatan Jumat Sehat", "Pembina Jumat Sehat"],["08.00 - 08.35", "Analisis Titrimetri", "Eko Jayanti, S.Pd"],["08.35 - 09.10", "Analisis Titrimetri", "Eko Jayanti, S.Pd"],["09.10 - 09.45", "Analisis Titrimetri", "Eko Jayanti, S.Pd"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Analisis Titrimetri", "Eko Jayanti, S.Pd"],["10.35 - 11.10", "Analisis Titrimetri", "Eko Jayanti, S.Pd"],["11.10 - 11.20", "Pulang", ""]]
+};
+
+let lastMapel = "";
+function timeToMinutes(timeStr) {
+    const [h, m] = timeStr.split('.').map(Number);
+    return h * 60 + m;
+}
+function getMapelAtTime(hari, minutes) {
+    const jadwal = dataJadwal[hari];
+    if(!jadwal) return null;
+    for(let i = 1; i < jadwal.length; i++) {
+        const row = jadwal[i];
+        const [start, end] = row[0].split(' - ');
+        const startMin = timeToMinutes(start);
+        const endMin = timeToMinutes(end);
+        if(minutes >= startMin && minutes < endMin) return row[1];
+    }
+    return null;
+}
+function checkNotification() {
+    if(!audioEnabled) return;
+    const now = new Date();
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const today = new Date(utc + (3600000 * 8));
+    const hariArr = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+    const namaHari = hariArr[today.getDay()];
+    const currentMinutes = today.getHours() * 60 + today.getMinutes();
+    const mapelSekarang = getMapelAtTime(namaHari, currentMinutes);
+    const mapel1MenitLalu = getMapelAtTime(namaHari, currentMinutes - 1);
+
+    if(mapelSekarang && mapelSekarang!== mapel1MenitLalu && mapelSekarang!== lastMapel) {
+        lastMapel = mapelSekarang;
+        if(mapelSekarang === "Istirahat") playJapaneseBreakBell();
+        else if(mapelSekarang === "Pulang") playJapaneseHomeBell(); // ini tetep jalan
+        else if(mapelSekarang!== "") playJapaneseEnterBell();
+    }
+    if(today.getHours() === 0 && today.getMinutes() === 0) lastMapel = "";
+}
+
+function drawText(text, x, y, fontSize, align = 'center', bold = false, color = '#000'){
+    ctx.font = `${bold? 'bold' : 'normal'} ${fontSize}px "Segoe UI", Arial`;
+    ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = 'top'; ctx.fillText(text, x, y);
+}
+function drawTable(hari, startX, startY, tableWidth){
+    const jadwalAsli = dataJadwal[hari];
+    // Filter: hapus row "Pulang" saat gambar tabel
+    const jadwal = jadwalAsli.filter(row => row[1]!== "Pulang");
+
+    const rowHeight = 22;
+    const colWidths = [75, tableWidth - 75 - 140, 140];
+    drawText(hari, startX, startY - 22, 14, 'left', true);
+    ctx.fillStyle = '#d9d9d9'; ctx.fillRect(startX, startY, tableWidth, rowHeight);
+
+    for(let i = 0; i < jadwal.length; i++){
+        let y = startY + i * rowHeight; let row = jadwal[i]; let x = startX;
+        if(row[0].includes("Istirahat")){ ctx.fillStyle = '#000'; ctx.fillRect(startX, y, tableWidth, rowHeight); ctx.fillStyle = '#fff'; } else { ctx.fillStyle = '#000'; }
+        ctx.strokeStyle = '#444'; ctx.lineWidth = 1; ctx.strokeRect(startX, y, tableWidth, rowHeight);
+        ctx.beginPath(); ctx.moveTo(x + colWidths[0], y); ctx.lineTo(x + colWidths[0], y + rowHeight);
+        ctx.moveTo(x + colWidths[0] + colWidths[1], y); ctx.lineTo(x + colWidths[0] + colWidths[1], y + rowHeight); ctx.stroke();
+        let isHeader = i === 0; let fontSize = isHeader? 11 : 10; let bold = isHeader;
+        drawText(row[0], x + colWidths[0]/2, y + 3, fontSize, 'center', bold);
+        drawText(row[1], x + colWidths[0] + 5, y + 3, fontSize, 'left', bold);
+        drawText(row[2], x + colWidths[0] + colWidths[1] + 5, y + 3, fontSize, 'left', bold);
+    }
+}
+function drawNotebookPaper() {
+    ctx.fillStyle = '#fefcf3'; ctx.fillRect(0, 0, slideWidth, slideHeight);
+    ctx.strokeStyle = '#cce0ff'; ctx.lineWidth = 1;
+    for (let y = lineHeight; y < slideHeight; y += lineHeight) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(slideWidth, y); ctx.stroke(); }
+    ctx.strokeStyle = '#ffaaaa'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(margin, 0); ctx.lineTo(margin, slideHeight); ctx.stroke();
+    const now = new Date(); const utc = now.getTime() + (now.getTimezoneOffset() * 60000); const today = new Date(utc + (3600000 * 8));
+    const hariArr = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+    const bulanArr = ["JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"];
+    const namaHari = hariArr[today.getDay()]; const tanggal = today.getDate(); const namaBulan = bulanArr[today.getMonth()];
+    const currentMinutes = today.getHours() * 60 + today.getMinutes();
+    const mapelSekarang = getMapelAtTime(namaHari, currentMinutes) || "Di luar jam pelajaran";
+    const boxH = 100; const calW = 120; const calX = slideWidth/2 - calW/2 - 285; const calY = 20;
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.strokeRect(calX, calY, calW, boxH); ctx.fillStyle = '#000'; ctx.fillRect(calX, calY, calW, 25);
+    drawText(namaBulan, calX + calW/2, calY + 4, 14, 'center', true, '#fff');
+    ctx.setLineDash([2, 2]); ctx.beginPath(); ctx.moveTo(calX + 5, calY + 25); ctx.lineTo(calX + calW - 5, calY + 25); ctx.stroke(); ctx.setLineDash([]);
+    drawText(tanggal, calX + calW/2, calY + 28, 40, 'center', true, '#000'); drawText(namaHari.toUpperCase(), calX + calW/2, calY + 72, 14, 'center', true, '#000');
+    const clockW = 175; const clockX = calX + calW + 25; const clockY = calY;
+    ctx.strokeRect(clockX, clockY, clockW, boxH); ctx.fillRect(clockX, clockY, clockW, 25);
+    drawText("WAKTU", clockX + clockW/2, clockY + 4, 14, 'center', true, '#fff');
+    const hours = String(today.getHours()).padStart(2, '0'); const minutes = String(today.getMinutes()).padStart(2, '0'); const seconds = String(today.getSeconds()).padStart(2, '0');
+    drawText(`${hours}:${minutes}:${seconds}`, clockX + clockW/2, clockY + 28, 40, 'center', true, '#000'); drawText("WITA", clockX + clockW/2, clockY + 72, 14, 'center', true, '#000');
+    const mapelW = 345; const mapelX = clockX + clockW + 25; const mapelY = calY;
+    ctx.strokeRect(mapelX, mapelY, mapelW, boxH); ctx.fillRect(mapelX, mapelY, mapelW, 25);
+    drawText("SEDANG BERJALAN", mapelX + mapelW/2, mapelY + 4, 14, 'center', true, '#fff');
+    drawText(mapelSekarang, mapelX + mapelW/2, mapelY + 40, 22, 'center', true, '#000');
+    const offsetY = 140;
+    drawText("JADWAL PELAJARAN", slideWidth/2, 20 + offsetY, 26, 'center', true);
+    drawText("Kelas XI-Kimia Analisis", slideWidth/2, 55 + offsetY, 16, 'center', false);
+    drawText("Wali Kelas: Guritno Aditya Warman, S.Pd", slideWidth - 50, 80 + offsetY, 12, 'right', false);
+    const tableWidth = 350; const gap = 25;
+    drawTable("Senin", 30, 135 + gap + offsetY, tableWidth);
+    drawTable("Selasa", 30, 455 + gap + offsetY, tableWidth);
+    drawTable("Rabu", 30, 825 + gap + offsetY, tableWidth);
+    drawTable("Kamis", 390, 135 + gap + offsetY, tableWidth);
+    drawTable("Jumat", 390, 495 + gap + offsetY, tableWidth);
+}
+drawNotebookPaper();
+setInterval(drawNotebookPaper, 1000);
+setInterval(checkNotification, 1000);
+</script>
+</body>
+</html>
