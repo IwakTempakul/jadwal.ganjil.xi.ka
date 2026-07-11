@@ -3,15 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jadwal XI-KA</title>
+<title>Jadwal + Bell Sekolah Jepang BW</title>
 <style>
     body {
         margin: 0;
         background: #e0e0e0;
         display: flex;
         justify-content: center;
-        align-items: center;
+        align-items: flex-start;
         min-height: 100vh;
+        overflow: hidden; /* biar ga ada scroll ganda */
     }
     #container {
         width: 768px;
@@ -19,6 +20,7 @@
         position: relative;
         background: #fff;
         box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        transform-origin: top center; /* zoom dari atas tengah */
     }
     canvas { width: 100%; height: 100%; display: block; }
     #btnAudio {
@@ -78,6 +80,15 @@ ctx.scale(scaleFactor * dpr, scaleFactor * dpr);
 
 const lineHeight = 24;
 const margin = 60;
+
+// AUTO RESIZE BIAR GA KEPOTONG
+function resizeContainer() {
+    const container = document.getElementById('container');
+    const scale = Math.min(window.innerWidth / 768, window.innerHeight / 1366);
+    container.style.transform = `scale(${scale})`;
+}
+window.addEventListener('resize', resizeContainer);
+resizeContainer();
 
 // AUDIO
 let audioCtx;
@@ -158,7 +169,7 @@ function checkNotification() {
     if(!audioEnabled) return;
     const now = new Date();
     const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const today = new Date(utc + (3600000 * 8));
+    const today = new Date(utc + (3600000 * 8)); // WITA
     const hariArr = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
     const namaHari = hariArr[today.getDay()];
     const currentMinutes = today.getHours() * 60 + today.getMinutes();
@@ -168,7 +179,7 @@ function checkNotification() {
     if(mapelSekarang && mapelSekarang!== mapel1MenitLalu && mapelSekarang!== lastMapel) {
         lastMapel = mapelSekarang;
         if(mapelSekarang === "Istirahat") playJapaneseBreakBell();
-        else if(mapelSekarang === "Pulang") playJapaneseHomeBell(); // ini tetep jalan
+        else if(mapelSekarang === "Pulang") playJapaneseHomeBell();
         else if(mapelSekarang!== "") playJapaneseEnterBell();
     }
     if(today.getHours() === 0 && today.getMinutes() === 0) lastMapel = "";
@@ -180,8 +191,7 @@ function drawText(text, x, y, fontSize, align = 'center', bold = false, color = 
 }
 function drawTable(hari, startX, startY, tableWidth){
     const jadwalAsli = dataJadwal[hari];
-    // Filter: hapus row "Pulang" saat gambar tabel
-    const jadwal = jadwalAsli.filter(row => row[1]!== "Pulang");
+    const jadwal = jadwalAsli.filter(row => row[1]!== "Pulang"); // hapus pulang dari tabel
 
     const rowHeight = 22;
     const colWidths = [75, tableWidth - 75 - 140, 140];
