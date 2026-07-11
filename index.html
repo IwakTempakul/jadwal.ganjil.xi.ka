@@ -185,6 +185,9 @@ const dataJadwal = {
     "Jumat": [["Waktu", "Mapel", "Pengajar"],["07.00 - 08.00", "Kegiatan Jumat Sehat", "Pembina Jumat Sehat"],["08.00 - 08.35", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["08.35 - 09.10", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["09.10 - 09.45", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["10.35 - 11.10", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["11.10 - 11.20", "Pulang", ""]]
 };
 
+// DATA NAMA MURID
+const daftarNama = ["Abdi Fathoni","Abdul Wahab","Aisyila Kurnia","Alqos Khoiri Sebastian","Amelya Fitri","Anesya Febriana Dwi Wulandari Fatecha","Azriel Zailani","Bastian Efendi","Chila Nafisha Putri","Dennisa Serfiani","Dewi Nur Maharani","Fadhilah Nur Fauziyyah","Fatimah Zahra","Kartika Eka Pratiwi","M. Abid Dhaifullah Fahrul","Maria Sinta Bela","Maulida Nadhjua","Meylan Sari","Muhammad Daffa Hafidz Dzaki Pahrein","Muhammad Rajabil Rahman","Muhammad Reno Pratama Putra","Muhammad Ridho","Natasya Aulia Anggraeni","Nur Syabila","Putri Nur Azizah","Respati Rangga Kienoya","Reynold Nathanael Ziliwu","Rezqy Akbar Prasetyo","Rizky Mahendra Simamora","Steven Imanuel Yudhistira","Veronica Juanita Dastin","Yuniar Qolby","Zhaky Andra Dinata"];
+
 let lastMapel = "";
 function timeToMinutes(timeStr) {
     const [h, m] = timeStr.split('.').map(Number);
@@ -247,6 +250,7 @@ function drawTable(hari, startX, startY, tableWidth){
         drawText(row[2], x + colWidths[0] + colWidths[1] + 5, y + 3, fontSize, 'left', bold);
     }
 }
+
 function drawNotebookPaper() {
     ctx.fillStyle = '#fefcf3'; ctx.fillRect(0, 0, slideWidth, slideHeight);
     ctx.strokeStyle = '#cce0ff'; ctx.lineWidth = 1;
@@ -270,7 +274,7 @@ function drawNotebookPaper() {
     drawText(`${hours}:${minutes}:${seconds}`, clockX + clockW/2, clockY + 28, 40, 'center', true, '#000'); drawText("WITA", clockX + clockW/2, clockY + 72, 14, 'center', true, '#000');
     const mapelW = 345; const mapelX = clockX + clockW + 25; const mapelY = calY;
     ctx.strokeRect(mapelX, mapelY, mapelW, boxH); ctx.fillRect(mapelX, mapelY, mapelW, 25);
-    drawText("SEDANG BERJALAN", mapelX + mapelW/2, mapelY + 4, 14, 'center', true, '#fff');
+    drawText("SAAT INI", mapelX + mapelW/2, mapelY + 4, 14, 'center', true, '#fff');
     drawText(mapelSekarang, mapelX + mapelW/2, mapelY + 40, 22, 'center', true, '#000');
     const offsetY = 140;
     drawText("JADWAL PELAJARAN", slideWidth/2, 20 + offsetY, 26, 'center', true);
@@ -282,6 +286,53 @@ function drawNotebookPaper() {
     drawTable("Rabu", 30, 825 + gap + offsetY, tableWidth);
     drawTable("Kamis", 390, 135 + gap + offsetY, tableWidth);
     drawTable("Jumat", 390, 495 + gap + offsetY, tableWidth);
+
+    // KOTAK + NAMA MURID 2 KOLOM BULLET URUT KE BAWAH
+    const jumatY = 495 + gap + offsetY;
+    const jumatH = 9 * 22;
+    const rabuY = 825 + gap + offsetY;
+    const rabuH = 15 * 22;
+    const boxX = 390;
+    const boxY = jumatY + jumatH;
+    const boxW = tableWidth + 18; // +18px total
+    const boxH2 = ((rabuY + rabuH) - boxY) - 150; // -150px
+    ctx.strokeStyle = '#444';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(boxX, boxY, boxW, boxH2);
+
+    // Judul
+    drawText("XI-KIMIA ANALISIS", boxX + boxW/2, boxY + 8, 12, 'center', true);
+    drawText("SMK NEGERI 6 SAMARINDA", boxX + boxW/2, boxY + 24, 10, 'center', false);
+
+    // Isi nama 2 kolom urut ke bawah
+    const colWidth = boxW / 2;
+    const startY = boxY + 52;
+    const lineH = 14;
+    const totalNama = daftarNama.length;
+    const maxPerKolom = Math.ceil(totalNama / 2);
+    
+    daftarNama.forEach((nama, index) => {
+        let col = index >= maxPerKolom ? 1 : 0;
+        let row = col === 0 ? index : index - maxPerKolom;
+        let xPos = boxX + 12 + (col * colWidth);
+        let yPos = startY + (row * lineH);
+        
+        ctx.fillStyle = '#000';
+        ctx.beginPath();
+        ctx.arc(xPos + 3, yPos + 6, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+        drawText(nama, xPos + 10, yPos, 9, 'left', false);
+    });
+
+    // KOTAK 1 DI BAWAH KOTAK MURID - SEMESTER GANJIL - INI MASIH ADA
+    const infoBoxH = 60;
+    const infoBoxY = boxY + boxH2 + 15;
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(boxX, infoBoxY, boxW, infoBoxH);
+    drawText("SEMESTER GANJIL", boxX + boxW/2, infoBoxY + 12, 12, 'center', true, '#000');
+    drawText("TAHUN AJARAN 2026/2027", boxX + boxW/2, infoBoxY + 32, 11, 'center', false, '#000');
+
 }
 drawNotebookPaper();
 setInterval(drawNotebookPaper, 1000);
