@@ -176,7 +176,7 @@ function playJapaneseHomeBell() {
     }
 }
 
-// DATA JADWAL - SUDAH DIUBAH
+// DATA JADWAL
 const dataJadwal = {
     "Senin": [["Waktu", "Mapel", "Pengajar"],["07.00 - 08.00", "Upacara Bendera", "Inspektur Upacara"],["08.00 - 08.35", "Bahasa Indonesia", "Delis Oktryana, S.Pd"],["08.35 - 09.10", "Bahasa Indonesia", "Delis Oktryana, S.Pd"],["09.10 - 09.45", "Bahasa Indonesia", "Delis Oktryana, S.Pd"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "PJOK", "Idham Ibrahim, S.Pd"],["10.35 - 11.10", "PJOK", "Idham Ibrahim, S.Pd"],["11.10 - 11.45", "Pendidikan Pancasila", "Dra. Nunung Catur Wijayanti"],["11.45 - 12.20", "Istirahat", ""],["12.20 - 13.00", "Pendidikan Pancasila", "Dra. Nunung Catur Wijayanti"],["13.00 - 13.35", "Pulang", ""]],
     "Selasa": [["Waktu", "Mapel", "Pengajar"],["07.15 - 08.00", "Analisis Kimia", "Widya Fismadita A,S.ST"],["08.00 - 08.35", "Analisis Kimia", "Widya Fismadita A,S.ST"],["08.35 - 09.10", "Analisis Kimia", "Widya Fismadita A,S.ST"],["09.10 - 09.45", "Analisis Kimia", "Widya Fismadita A,S.ST"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["10.35 - 11.10", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["11.10 - 11.45", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["11.45 - 12.20", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["12.20 - 13.00", "Istirahat", ""],["13.00 - 13.35", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["13.35 - 14.10", "Sejarah", "Fitrul Hadi Fauzi, S.Pd"],["14.10 - 14.45", "Sejarah", "Fitrul Hadi Fauzi, S.Pd"],["14.45 - 15.20", "Pulang", ""]],
@@ -225,9 +225,9 @@ function checkNotification() {
     if(today.getHours() === 0 && today.getMinutes() === 0) lastMapel = "";
 }
 
-function drawText(text, x, y, fontSize, align = 'center', bold = false, color = '#000'){
+function drawText(text, x, y, fontSize, align = 'center', bold = false, color = '#000', baseline = 'top'){
     ctx.font = `${bold? 'bold' : 'normal'} ${fontSize}px "Segoe UI", Arial`;
-    ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = 'top'; ctx.fillText(text, x, y);
+    ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = baseline; ctx.fillText(text, x, y);
 }
 function drawTable(hari, startX, startY, tableWidth){
     const jadwalAsli = dataJadwal[hari];
@@ -235,27 +235,54 @@ function drawTable(hari, startX, startY, tableWidth){
 
     const rowHeight = 22;
     const colWidths = [75, tableWidth - 75 - 140, 140];
-    drawText(hari, startX, startY - 22, 14, 'left', true);
+    drawText(hari, startX, startY - 22, 14, 'left', true, '#000', 'top');
     ctx.fillStyle = '#d9d9d9'; ctx.fillRect(startX, startY, tableWidth, rowHeight);
+
+    let hasPJOK = false;
+    let hasKIK = false;
+    let hasTitrimetri = false;
 
     for(let i = 0; i < jadwal.length; i++){
         let y = startY + i * rowHeight; let row = jadwal[i]; let x = startX;
+        if(row[1] === "PJOK") hasPJOK = true;
+        if(row[1] === "KIK") hasKIK = true;
+        if(row[1] === "Titrimetri dan Gravimetri") hasTitrimetri = true;
+
         if(row[0].includes("Istirahat")){ ctx.fillStyle = '#000'; ctx.fillRect(startX, y, tableWidth, rowHeight); ctx.fillStyle = '#fff'; } else { ctx.fillStyle = '#000'; }
         ctx.strokeStyle = '#444'; ctx.lineWidth = 1; ctx.strokeRect(startX, y, tableWidth, rowHeight);
         ctx.beginPath(); ctx.moveTo(x + colWidths[0], y); ctx.lineTo(x + colWidths[0], y + rowHeight);
         ctx.moveTo(x + colWidths[0] + colWidths[1], y); ctx.lineTo(x + colWidths[0] + colWidths[1], y + rowHeight); ctx.stroke();
-        let isHeader = i === 0; let fontSize = isHeader? 11 : 10; let bold = isHeader;
-        drawText(row[0], x + colWidths[0]/2, y + 3, fontSize, 'center', bold);
-        drawText(row[1], x + colWidths[0] + 5, y + 3, fontSize, 'left', bold);
-        drawText(row[2], x + colWidths[0] + colWidths[1] + 5, y + 3, fontSize, 'left', bold);
+        
+        let isHeader = i === 0; 
+        let fontSize = isHeader? 11 : 10; 
+        let bold = isHeader;
+        let yCenter = y + rowHeight / 2; // TITIK TENGAH VERTIKAL
+
+        drawText(row[0], x + colWidths[0]/2, yCenter, fontSize, 'center', bold, '#000', 'middle');
+        drawText(row[1], x + colWidths[0] + 5, yCenter, fontSize, 'left', bold, '#000', 'middle');
+        drawText(row[2], x + colWidths[0] + colWidths[1] + 5, yCenter, fontSize, 'left', bold, '#000', 'middle');
     }
+
+    let noteY = startY + jadwal.length * rowHeight + 5;
+    if(hasPJOK){
+        drawText("PJOK = Pendidikan Jasmani, Olahraga, dan Kesehatan", startX, noteY, 9, 'left', false, '#333', 'top');
+        noteY += 14;
+    }
+    if(hasKIK){
+        drawText("KIK = Kreativitas, Inovasi, dan Kewirausahaan", startX, noteY, 9, 'left', false, '#333', 'top');
+        noteY += 14;
+    }
+    if(hasTitrimetri){
+        drawText("Titrimetri dan Gravimetri = Analisis Titimetri dan Gravimetri", startX, noteY, 9, 'left', false, '#333', 'top');
+    }
+    return noteY;
 }
 
 function drawNotebookPaper() {
     ctx.fillStyle = '#fefcf3'; ctx.fillRect(0, 0, slideWidth, slideHeight);
     ctx.strokeStyle = '#cce0ff'; ctx.lineWidth = 1;
     for (let y = lineHeight; y < slideHeight; y += lineHeight) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(slideWidth, y); ctx.stroke(); }
-    ctx.strokeStyle = '#ffaaaa'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(margin, 0); ctx.lineTo(margin, slideHeight); ctx.stroke();
+    
     const now = new Date(); const utc = now.getTime() + (now.getTimezoneOffset() * 60000); const today = new Date(utc + (3600000 * 8));
     const hariArr = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
     const bulanArr = ["JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"];
@@ -264,47 +291,50 @@ function drawNotebookPaper() {
     const mapelSekarang = getMapelAtTime(namaHari, currentMinutes) || "Di luar jam pelajaran";
     const boxH = 100; const calW = 120; const calX = slideWidth/2 - calW/2 - 285; const calY = 20;
     ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.strokeRect(calX, calY, calW, boxH); ctx.fillStyle = '#000'; ctx.fillRect(calX, calY, calW, 25);
-    drawText(namaBulan, calX + calW/2, calY + 4, 14, 'center', true, '#fff');
+    drawText(namaBulan, calX + calW/2, calY + 4, 14, 'center', true, '#fff', 'top');
     ctx.setLineDash([2, 2]); ctx.beginPath(); ctx.moveTo(calX + 5, calY + 25); ctx.lineTo(calX + calW - 5, calY + 25); ctx.stroke(); ctx.setLineDash([]);
-    drawText(tanggal, calX + calW/2, calY + 28, 40, 'center', true, '#000'); drawText(namaHari.toUpperCase(), calX + calW/2, calY + 72, 14, 'center', true, '#000');
+    drawText(tanggal, calX + calW/2, calY + 38, 40, 'center', true, '#000', 'top');
+    drawText(namaHari.toUpperCase(), calX + calW/2, calY + 82, 14, 'center', true, '#000', 'top');
+    
     const clockW = 175; const clockX = calX + calW + 25; const clockY = calY;
     ctx.strokeRect(clockX, clockY, clockW, boxH); ctx.fillRect(clockX, clockY, clockW, 25);
-    drawText("WAKTU", clockX + clockW/2, clockY + 4, 14, 'center', true, '#fff');
+    drawText("WAKTU", clockX + clockW/2, clockY + 4, 14, 'center', true, '#fff', 'top');
     const hours = String(today.getHours()).padStart(2, '0'); const minutes = String(today.getMinutes()).padStart(2, '0'); const seconds = String(today.getSeconds()).padStart(2, '0');
-    drawText(`${hours}:${minutes}:${seconds}`, clockX + clockW/2, clockY + 28, 40, 'center', true, '#000'); drawText("WITA", clockX + clockW/2, clockY + 72, 14, 'center', true, '#000');
+    drawText(`${hours}:${minutes}:${seconds}`, clockX + clockW/2, clockY + 38, 40, 'center', true, '#000', 'top');
+    drawText("WITA", clockX + clockW/2, clockY + 82, 14, 'center', true, '#000', 'top');
+    
     const mapelW = 345; const mapelX = clockX + clockW + 25; const mapelY = calY;
     ctx.strokeRect(mapelX, mapelY, mapelW, boxH); ctx.fillRect(mapelX, mapelY, mapelW, 25);
-    drawText("SAAT INI", mapelX + mapelW/2, mapelY + 4, 14, 'center', true, '#fff');
-    drawText(mapelSekarang, mapelX + mapelW/2, mapelY + 40, 22, 'center', true, '#000');
+    drawText("SAAT INI", mapelX + mapelW/2, mapelY + 4, 14, 'center', true, '#fff', 'top');
+    drawText(mapelSekarang, mapelX + mapelW/2, mapelY + 50, 22, 'center', true, '#000', 'top');
+    
     const offsetY = 140;
-    drawText("JADWAL PELAJARAN", slideWidth/2, 20 + offsetY, 26, 'center', true);
-    drawText("Kelas XI-Kimia Analisis", slideWidth/2, 55 + offsetY, 16, 'center', false);
-    drawText("Wali Kelas: Guritno Aditya Warman, S.Pd", slideWidth - 50, 80 + offsetY, 12, 'right', false);
+    drawText("JADWAL PELAJARAN", slideWidth/2, 20 + offsetY, 26, 'center', true, '#000', 'top');
+    drawText("Kelas XI-Kimia Analisis", slideWidth/2, 55 + offsetY, 16, 'center', false, '#000', 'top');
+    drawText("Wali Kelas: Guritno Aditya Warman, S.Pd", slideWidth - 50, 80 + offsetY, 12, 'right', false, '#000', 'top');
     const tableWidth = 350; const gap = 25;
+    
     drawTable("Senin", 30, 135 + gap + offsetY, tableWidth);
     drawTable("Selasa", 30, 455 + gap + offsetY, tableWidth);
     drawTable("Rabu", 30, 825 + gap + offsetY, tableWidth);
     drawTable("Kamis", 390, 135 + gap + offsetY, tableWidth);
     drawTable("Jumat", 390, 495 + gap + offsetY, tableWidth);
 
-    // KOTAK + NAMA MURID 2 KOLOM BULLET URUT KE BAWAH
     const jumatY = 495 + gap + offsetY;
     const jumatH = 9 * 22;
     const rabuY = 825 + gap + offsetY;
     const rabuH = 15 * 22;
     const boxX = 390;
-    const boxY = jumatY + jumatH;
-    const boxW = tableWidth + 18; // +18px total
-    const boxH2 = ((rabuY + rabuH) - boxY) - 150; // -150px
+    const boxY = jumatY + jumatH + 20;
+    const boxW = tableWidth + 18;
+    const boxH2 = ((rabuY + rabuH) - boxY) - 150;
     ctx.strokeStyle = '#444';
     ctx.lineWidth = 1;
     ctx.strokeRect(boxX, boxY, boxW, boxH2);
 
-    // Judul
-    drawText("XI-KIMIA ANALISIS", boxX + boxW/2, boxY + 8, 12, 'center', true);
-    drawText("SMK NEGERI 6 SAMARINDA", boxX + boxW/2, boxY + 24, 10, 'center', false);
+    drawText("XI-KIMIA ANALISIS", boxX + boxW/2, boxY + 8, 12, 'center', true, '#000', 'top');
+    drawText("SMK NEGERI 6 SAMARINDA", boxX + boxW/2, boxY + 24, 10, 'center', false, '#000', 'top');
 
-    // Isi nama 2 kolom urut ke bawah
     const colWidth = boxW / 2;
     const startY = boxY + 52;
     const lineH = 14;
@@ -321,18 +351,46 @@ function drawNotebookPaper() {
         ctx.beginPath();
         ctx.arc(xPos + 3, yPos + 6, 1.5, 0, Math.PI * 2);
         ctx.fill();
-        drawText(nama, xPos + 10, yPos, 9, 'left', false);
+        drawText(nama, xPos + 10, yPos, 9, 'left', false, '#000', 'top');
     });
 
-    // KOTAK 1 DI BAWAH KOTAK MURID - SEMESTER GANJIL - INI MASIH ADA
-    const infoBoxH = 60;
-    const infoBoxY = boxY + boxH2 + 15;
+    const infoBoxH = 52;
+    const infoBoxY = boxY + boxH2 + 14;
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 1;
     ctx.strokeRect(boxX, infoBoxY, boxW, infoBoxH);
-    drawText("SEMESTER GANJIL", boxX + boxW/2, infoBoxY + 12, 12, 'center', true, '#000');
-    drawText("TAHUN AJARAN 2026/2027", boxX + boxW/2, infoBoxY + 32, 11, 'center', false, '#000');
+    drawText("SEMESTER GANJIL", boxX + boxW/2, infoBoxY + 12, 12, 'center', true, '#000', 'top');
+    drawText("TAHUN AJARAN 2026/2027", boxX + boxW/2, infoBoxY + 32, 11, 'center', false, '#000', 'top');
 
+    const countdownBoxY = infoBoxY + infoBoxH + 9;
+    const countdownBoxH = 52;
+    ctx.strokeRect(boxX, countdownBoxY, boxW, countdownBoxH);
+
+    const stopDate = new Date(2026, 10, 30, 8, 0, 0);
+    const isStopped = today >= stopDate;
+
+    const startSemester = new Date(2026, 6, 13, 7, 0, 0);
+    let diffBerjalan = isStopped ? (stopDate - startSemester) : (today - startSemester);
+    let hariBerjalan = 0, jamBerjalan = 0, menitBerjalan = 0, detikBerjalan = 0;
+    if(diffBerjalan > 0){
+        hariBerjalan = Math.floor(diffBerjalan / (1000*60*60*24));
+        jamBerjalan = Math.floor((diffBerjalan % (1000*60*60*24)) / (1000*60*60));
+        menitBerjalan = Math.floor((diffBerjalan % (1000*60*60)) / (1000*60));
+        detikBerjalan = Math.floor((diffBerjalan % (1000*60)) / 1000);
+    }
+    const textBaris1 = `Semester berjalan: ${hariBerjalan} hari ${jamBerjalan} jam ${menitBerjalan} menit ${detikBerjalan} detik.`;
+    drawText(textBaris1, boxX + boxW/2, countdownBoxY + 12, 10, 'center', false, '#000', 'top');
+
+    let diffMenuju = isStopped ? 0 : (stopDate - today); 
+    let hariMenuju = 0, jamMenuju = 0, menitMenuju = 0, detikMenuju = 0;
+    if(diffMenuju > 0){
+        hariMenuju = Math.floor(diffMenuju / (1000*60*60*24));
+        jamMenuju = Math.floor((diffMenuju % (1000*60*60*24)) / (1000*60*60));
+        menitMenuju = Math.floor((diffMenuju % (1000*60*60)) / (1000*60));
+        detikMenuju = Math.floor((diffMenuju % (1000*60)) / 1000);
+    }
+    const textBaris2 = `Tinggal ${hariMenuju} hari ${jamMenuju} jam ${menitMenuju} menit ${detikMenuju} detik menuju Asesmen Sumatif Akhir.`;
+    drawText(textBaris2, boxX + boxW/2, countdownBoxY + 32, 10, 'center', false, '#000', 'top');
 }
 drawNotebookPaper();
 setInterval(drawNotebookPaper, 1000);
