@@ -256,7 +256,7 @@ function drawTable(hari, startX, startY, tableWidth){
         let isHeader = i === 0; 
         let fontSize = isHeader? 11 : 10; 
         let bold = isHeader;
-        let yCenter = y + rowHeight / 2; // TITIK TENGAH VERTIKAL
+        let yCenter = y + rowHeight / 2;
 
         drawText(row[0], x + colWidths[0]/2, yCenter, fontSize, 'center', bold, '#000', 'middle');
         drawText(row[1], x + colWidths[0] + 5, yCenter, fontSize, 'left', bold, '#000', 'middle');
@@ -273,7 +273,7 @@ function drawTable(hari, startX, startY, tableWidth){
         noteY += 14;
     }
     if(hasTitrimetri){
-        drawText("Titrimetri dan Gravimetri = Analisis Titimetri dan Gravimetri", startX, noteY, 9, 'left', false, '#333', 'top');
+        drawText("Titrimetri dan Gravimetri = Analisis Titrimetri dan Gravimetri", startX, noteY, 9, 'left', false, '#333', 'top'); // UDAH DIBENERIN
     }
     return noteY;
 }
