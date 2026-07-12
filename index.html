@@ -176,13 +176,13 @@ function playJapaneseHomeBell() {
     }
 }
 
-// DATA JADWAL - PULANG DISET 30 MENIT SEMUA
+// DATA JADWAL - PULANG 30 MENIT SEMUA
 const dataJadwal = {
-    "Senin": [["Waktu", "Mapel", "Pengajar"],["07.00 - 08.00", "Upacara Bendera", "Inspektur Upacara"],["08.00 - 08.35", "Bahasa Indonesia", "Delis Oktryana, S.Pd"],["08.35 - 09.10", "Bahasa Indonesia", "Delis Oktryana, S.Pd"],["09.10 - 09.45", "Bahasa Indonesia", "Delis Oktryana, S.Pd"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "PJOK", "Idham Ibrahim, S.Pd"],["10.35 - 11.10", "PJOK", "Idham Ibrahim, S.Pd"],["11.10 - 11.45", "Pendidikan Pancasila", "Dra. Nunung Catur Wijayanti"],["11.45 - 12.20", "Istirahat", ""],["12.20 - 13.00", "Pendidikan Pancasila", "Dra. Nunung Catur Wijayanti"],["13.00 - 13.30", "Pulang", ""]], // 30 menit
-    "Selasa": [["Waktu", "Mapel", "Pengajar"],["07.15 - 08.00", "Analisis Kimia", "Widya Fismadita A,S.ST"],["08.00 - 08.35", "Analisis Kimia", "Widya Fismadita A,S.ST"],["08.35 - 09.10", "Analisis Kimia", "Widya Fismadita A,S.ST"],["09.10 - 09.45", "Analisis Kimia", "Widya Fismadita A,S.ST"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["10.35 - 11.10", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["11.10 - 11.45", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["11.45 - 12.20", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["12.20 - 13.00", "Istirahat", ""],["13.00 - 13.35", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["13.35 - 14.10", "Sejarah", "Fitrul Hadi Fauzi, S.Pd"],["14.10 - 14.45", "Sejarah", "Fitrul Hadi Fauzi, S.Pd"],["14.45 - 15.15", "Pulang", ""]], // 30 menit
-    "Rabu": [["Waktu", "Mapel", "Pengajar"],["07.15 - 08.00", "Kokurikuler (Ibadah Pagi)", "Pembina Keagamaan"],["08.00 - 08.35", "Pendidikan Agama", "Erawati, S.Ag, M.Pd.I"],["08.35 - 09.10", "Pendidikan Agama", "Erawati, S.Ag, M.Pd.I"],["09.10 - 09.45", "Pendidikan Agama", "Erawati, S.Ag, M.Pd.I"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Analisis Bahan Anorganik", "Fatresia, S.Pd"],["10.35 - 11.10", "Analisis Bahan Anorganik", "Fatresia, S.Pd"],["11.10 - 11.45", "Analisis Bahan Anorganik", "Fatresia, S.Pd"],["11.45 - 12.20", "Analisis Bahan Anorganik", "Fatresia, S.Pd"],["12.20 - 13.00", "Istirahat", ""],["13.00 - 13.35", "Mapel Pilihan", "Widya Fismadita A,S.ST"],["13.35 - 14.10", "Mapel Pilihan", "Widya Fismadita A,S.ST"],["14.10 - 14.45", "Mapel Pilihan", "Widya Fismadita A,S.ST"],["14.45 - 15.15", "Pulang", ""]], // 30 menit
-    "Kamis": [["Waktu", "Mapel", "Pengajar"],["07.15 - 08.00", "Matematika", "Didik Winarsih, S.Pd"],["08.00 - 08.35", "Matematika", "Didik Winarsih, S.Pd"],["08.35 - 09.10", "Matematika", "Didik Winarsih, S.Pd"],["09.10 - 09.45", "Bahasa Inggris", "Guritno Aditya Warman, S.Pd"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Bahasa Inggris", "Guritno Aditya Warman, S.Pd"],["10.35 - 11.10", "Bahasa Inggris", "Guritno Aditya Warman, S.Pd"],["11.10 - 11.45", "KIK", "Fatresia, S.Pd"],["11.45 - 12.20", "KIK", "Fatresia, S.Pd"],["12.20 - 13.00", "Istirahat", ""],["13.00 - 13.35", "KIK", "Fatresia, S.Pd"],["13.35 - 14.10", "KIK", "Fatresia, S.Pd"],["14.10 - 14.45", "KIK", "Fatresia, S.Pd"],["14.45 - 15.15", "Pulang", ""]], // 30 menit
-    "Jumat": [["Waktu", "Mapel", "Pengajar"],["07.00 - 08.00", "Kegiatan Jumat Sehat", "Pembina Jumat Sehat"],["08.00 - 08.35", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["08.35 - 09.10", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["09.10 - 09.45", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["10.35 - 11.10", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["11.10 - 11.40", "Pulang", ""]] // 30 menit
+    "Senin": [["Waktu", "Mapel", "Pengajar"],["07.00 - 08.00", "Upacara Bendera", "Inspektur Upacara"],["08.00 - 08.35", "Bahasa Indonesia", "Delis Oktryana, S.Pd"],["08.35 - 09.10", "Bahasa Indonesia", "Delis Oktryana, S.Pd"],["09.10 - 09.45", "Bahasa Indonesia", "Delis Oktryana, S.Pd"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "PJOK", "Idham Ibrahim, S.Pd"],["10.35 - 11.10", "PJOK", "Idham Ibrahim, S.Pd"],["11.10 - 11.45", "Pendidikan Pancasila", "Dra. Nunung Catur Wijayanti"],["11.45 - 12.20", "Istirahat", ""],["12.20 - 13.00", "Pendidikan Pancasila", "Dra. Nunung Catur Wijayanti"],["13.00 - 13.30", "Pulang", ""]],
+    "Selasa": [["Waktu", "Mapel", "Pengajar"],["07.15 - 08.00", "Analisis Kimia", "Widya Fismadita A,S.ST"],["08.00 - 08.35", "Analisis Kimia", "Widya Fismadita A,S.ST"],["08.35 - 09.10", "Analisis Kimia", "Widya Fismadita A,S.ST"],["09.10 - 09.45", "Analisis Kimia", "Widya Fismadita A,S.ST"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["10.35 - 11.10", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["11.10 - 11.45", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["11.45 - 12.20", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["12.20 - 13.00", "Istirahat", ""],["13.00 - 13.35", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["13.35 - 14.10", "Sejarah", "Fitrul Hadi Fauzi, S.Pd"],["14.10 - 14.45", "Sejarah", "Fitrul Hadi Fauzi, S.Pd"],["14.45 - 15.15", "Pulang", ""]],
+    "Rabu": [["Waktu", "Mapel", "Pengajar"],["07.15 - 08.00", "Kokurikuler (Ibadah Pagi)", "Pembina Keagamaan"],["08.00 - 08.35", "Pendidikan Agama", "Erawati, S.Ag, M.Pd.I"],["08.35 - 09.10", "Pendidikan Agama", "Erawati, S.Ag, M.Pd.I"],["09.10 - 09.45", "Pendidikan Agama", "Erawati, S.Ag, M.Pd.I"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Analisis Bahan Anorganik", "Fatresia, S.Pd"],["10.35 - 11.10", "Analisis Bahan Anorganik", "Fatresia, S.Pd"],["11.10 - 11.45", "Analisis Bahan Anorganik", "Fatresia, S.Pd"],["11.45 - 12.20", "Analisis Bahan Anorganik", "Fatresia, S.Pd"],["12.20 - 13.00", "Istirahat", ""],["13.00 - 13.35", "Mapel Pilihan", "Widya Fismadita A,S.ST"],["13.35 - 14.10", "Mapel Pilihan", "Widya Fismadita A,S.ST"],["14.10 - 14.45", "Mapel Pilihan", "Widya Fismadita A,S.ST"],["14.45 - 15.15", "Pulang", ""]],
+    "Kamis": [["Waktu", "Mapel", "Pengajar"],["07.15 - 08.00", "Matematika", "Didik Winarsih, S.Pd"],["08.00 - 08.35", "Matematika", "Didik Winarsih, S.Pd"],["08.35 - 09.10", "Matematika", "Didik Winarsih, S.Pd"],["09.10 - 09.45", "Bahasa Inggris", "Guritno Aditya Warman, S.Pd"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Bahasa Inggris", "Guritno Aditya Warman, S.Pd"],["10.35 - 11.10", "Bahasa Inggris", "Guritno Aditya Warman, S.Pd"],["11.10 - 11.45", "KIK", "Fatresia, S.Pd"],["11.45 - 12.20", "KIK", "Fatresia, S.Pd"],["12.20 - 13.00", "Istirahat", ""],["13.00 - 13.35", "KIK", "Fatresia, S.Pd"],["13.35 - 14.10", "KIK", "Fatresia, S.Pd"],["14.10 - 14.45", "KIK", "Fatresia, S.Pd"],["14.45 - 15.15", "Pulang", ""]],
+    "Jumat": [["Waktu", "Mapel", "Pengajar"],["07.00 - 08.00", "Kegiatan Jumat Sehat", "Pembina Jumat Sehat"],["08.00 - 08.35", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["08.35 - 09.10", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["09.10 - 09.45", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["10.35 - 11.10", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["11.10 - 11.40", "Pulang", ""]]
 };
 
 // DATA NAMA MURID
@@ -241,12 +241,14 @@ function drawTable(hari, startX, startY, tableWidth){
     let hasPJOK = false;
     let hasKIK = false;
     let hasTitrimetri = false;
+    let hasMapelPilihan = false;
 
     for(let i = 0; i < jadwal.length; i++){
         let y = startY + i * rowHeight; let row = jadwal[i]; let x = startX;
         if(row[1] === "PJOK") hasPJOK = true;
         if(row[1] === "KIK") hasKIK = true;
         if(row[1] === "Titrimetri dan Gravimetri") hasTitrimetri = true;
+        if(row[1] === "Mapel Pilihan") hasMapelPilihan = true;
 
         if(row[0].includes("Istirahat")){ ctx.fillStyle = '#000'; ctx.fillRect(startX, y, tableWidth, rowHeight); ctx.fillStyle = '#fff'; } else { ctx.fillStyle = '#000'; }
         ctx.strokeStyle = '#444'; ctx.lineWidth = 1; ctx.strokeRect(startX, y, tableWidth, rowHeight);
@@ -274,6 +276,10 @@ function drawTable(hari, startX, startY, tableWidth){
     }
     if(hasTitrimetri){
         drawText("Titrimetri dan Gravimetri = Analisis Titrimetri dan Gravimetri", startX, noteY, 9, 'left', false, '#333', 'top');
+        noteY += 14;
+    }
+    if(hasMapelPilihan){
+        drawText("Mapel Pilihan = Analisis Batu Bara", startX, noteY, 9, 'left', false, '#333', 'top'); // BARU DITAMBAH
     }
     return noteY;
 }
