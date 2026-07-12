@@ -1,406 +1,245 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jadwal XI-Kimia Analisis</title>
 <style>
-    body {
-        margin: 0;
-        background: #222;
-        display: flex;
-        justify-content: flex-start;
-        align-items: flex-start;
-        min-height: 100vh;
-        overflow: auto;
-        padding: 20px;
-        box-sizing: border-box;
-    }
-    #wrapper {
-        position: relative;
-        transform-origin: top left;
-    }
-    #container {
-        width: 768px;
-        height: 1366px;
-        position: relative;
-        background: #fff;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    canvas { width: 100%; height: 100%; display: block; }
-    #btnAudio {
-        position: absolute;
-        top: 150px;
-        right: 43px;
-        z-index: 999;
-        padding: 10px 16px;
-        background: #000;
-        color: #fff;
-        border: 2px solid #000;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: bold;
-        cursor: pointer;
-        box-shadow: none;
-        transition: opacity 0.5s, background 0.2s, color 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-    #btnAudio:hover { background: #fff; color: #000; }
-    #btnAudio svg { width: 16px; height: 16px; fill: currentColor; }
-
-    #zoomControls {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 1000;
-        display: flex;
-        gap: 10px;
-    }
-    #zoomControls button {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        border: none;
-        background: #000;
-        color: #fff;
-        font-size: 20px;
-        font-weight: bold;
-        cursor: pointer;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    }
-    #zoomControls button:active { transform: scale(0.9); }
+body { margin: 0; background: #222; display: flex; justify-content: flex-start; align-items: flex-start; min-height: 100vh; overflow: auto; padding: 20px; box-sizing: border-box; }
+#wrapper { position: relative; transform-origin: top left; }
+#container { width: 768px; height: 1366px; position: relative; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden; }
+canvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: pointer; position: absolute; top:0; left:0; z-index:1; }
+svg { position: absolute; top:0; left:0; width:100%; height:100%; z-index:2; pointer-events:none; }
+#btnAudio { position: absolute; top: 150px; right: 43px; z-index: 999; padding: 10px 16px; background: #000; color: #fff; border: 2px solid #000; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+#btnAudio:hover { background: #fff; color: #000; }
+#btnAudio svg { width: 16px; height: 16px; fill: currentColor; }
+#zoomControls { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px; }
+#zoomControls button { width: 45px; height: 45px; border-radius: 50%; border: none; background: #000; color: #fff; font-size: 20px; font-weight: bold; cursor: pointer; }
 </style>
 </head>
 <body>
 <div id="wrapper">
-    <div id="container">
-        <button id="btnAudio">
-            <svg viewBox="0 0 24 24">
-                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
-            </svg>
-            Aktifkan Bel
-        </button>
-        <canvas id="paperBG"></canvas>
-    </div>
+  <div id="container">
+    <button id="btnAudio"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>Aktifkan Bel</button>
+    <canvas id="paperBG"></canvas>
+    <svg id="fishLayer"></svg>
+  </div>
 </div>
-
-<div id="zoomControls">
-    <button id="zoomOut">-</button>
-    <button id="zoomReset">1:1</button>
-    <button id="zoomIn">+</button>
-</div>
+<div id="zoomControls"><button id="zoomOut">-</button><button id="zoomReset">1:1</button><button id="zoomIn">+</button></div>
 
 <script>
-const canvas = document.getElementById('paperBG');
-const wrapper = document.getElementById('wrapper');
-const dpr = window.devicePixelRatio || 1;
-const scaleFactor = 1.5;
-const slideWidth = 768;
-const slideHeight = 1366;
-
-canvas.width = slideWidth * scaleFactor * dpr;
-canvas.height = slideHeight * scaleFactor * dpr;
-canvas.style.width = slideWidth + "px";
-canvas.style.height = slideHeight + "px";
-const ctx = canvas.getContext('2d');
-ctx.scale(scaleFactor * dpr, scaleFactor * dpr);
-
+const canvas = document.getElementById('paperBG'); const wrapper = document.getElementById('wrapper');
+const svg = document.getElementById('fishLayer');
+const dpr = window.devicePixelRatio || 1; const scaleFactor = 1.5; const slideWidth = 768; const slideHeight = 1366;
+canvas.width = slideWidth * scaleFactor * dpr; canvas.height = slideHeight * scaleFactor * dpr;
+canvas.style.width = slideWidth + "px"; canvas.style.height = slideHeight + "px";
+const ctx = canvas.getContext('2d'); ctx.scale(scaleFactor * dpr, scaleFactor * dpr);
 const lineHeight = 24;
-const margin = 60;
 
-// ZOOM SYSTEM
-let currentScale = 1;
-function applyZoom() {
-    wrapper.style.transform = `scale(${currentScale})`;
-}
+let currentScale = 1; function applyZoom() { wrapper.style.transform = `scale(${currentScale})`; }
 document.getElementById('zoomIn').onclick = () => { currentScale = Math.min(currentScale + 0.2, 3); applyZoom(); }
 document.getElementById('zoomOut').onclick = () => { currentScale = Math.max(currentScale - 0.2, 0.2); applyZoom(); }
 document.getElementById('zoomReset').onclick = () => { currentScale = 1; applyZoom(); }
 
-window.addEventListener('wheel', (e) => {
-    if(e.ctrlKey) {
-        e.preventDefault();
-        if(e.deltaY < 0) currentScale = Math.min(currentScale + 0.1, 3);
-        else currentScale = Math.max(currentScale - 0.1, 0.2);
-        applyZoom();
-    }
-}, {passive: false});
+let audioCtx; let audioEnabled = false;
+document.getElementById('btnAudio').addEventListener('click', () => { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); audioEnabled = true; document.getElementById('btnAudio').style.display = 'none'; });
+function playNote(freq, duration, delay = 0) { if(!audioEnabled) return; setTimeout(() => { const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'triangle'; osc.frequency.value = freq; gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration); osc.connect(gain).connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration); }, delay); }
+function playJapaneseEnterBell(){playNote(523,0.25,0);playNote(587,0.25,250);playNote(659,0.25,500);playNote(784,0.5,750);}
+function playJapaneseBreakBell(){playNote(784,0.3,0);playNote(659,0.3,300);playNote(587,0.3,600);playNote(523,0.6,900);}
+function playJapaneseHomeBell(){const m=[523,659,784,1046];for(let i=0;i<2;i++){m.forEach((n,idx)=>playNote(n,0.3,(i*1400)+(idx*300)));}}
 
-// AUDIO
-let audioCtx;
-let audioEnabled = false;
-document.getElementById('btnAudio').addEventListener('click', () => {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    audioEnabled = true;
-    const btn = document.getElementById('btnAudio');
-    btn.style.opacity = '0';
-    setTimeout(() => btn.style.display = 'none', 500);
+const dataJadwal = { "Senin": [["Waktu","Mapel","Pengajar"],["07.00 - 08.00","Upacara Bendera","Inspektur Upacara"],["08.00 - 08.35","Bahasa Indonesia","Delis Oktryana, S.Pd"],["08.35 - 09.10","Bahasa Indonesia","Delis Oktryana, S.Pd"],["09.10 - 09.45","Bahasa Indonesia","Delis Oktryana, S.Pd"],["09.45 - 10.00","Istirahat",""],["10.00 - 10.35","PJOK","Idham Ibrahim, S.Pd"],["10.35 - 11.10","PJOK","Idham Ibrahim, S.Pd"],["11.10 - 11.45","Pendidikan Pancasila","Dra. Nunung Catur Wijayanti"],["11.45 - 12.20","Istirahat",""],["12.20 - 13.00","Pendidikan Pancasila","Dra. Nunung Catur Wijayanti"],["13.00 - 13.30","Pulang",""]], "Selasa": [["Waktu","Mapel","Pengajar"],["07.15 - 08.00","Analisis Kimia","Widya Fismadita A,S.ST"],["08.00 - 08.35","Analisis Kimia","Widya Fismadita A,S.ST"],["08.35 - 09.10","Analisis Kimia","Widya Fismadita A,S.ST"],["09.10 - 09.45","Analisis Kimia","Widya Fismadita A,S.ST"],["09.45 - 10.00","Istirahat",""],["10.00 - 10.35","Analisis Bahan Organik","Maulidina Rizki, S.Pd"],["10.35 - 11.10","Analisis Bahan Organik","Maulidina Rizki, S.Pd"],["11.10 - 11.45","Analisis Bahan Organik","Maulidina Rizki, S.Pd"],["11.45 - 12.20","Analisis Bahan Organik","Maulidina Rizki, S.Pd"],["12.20 - 13.00","Istirahat",""],["13.00 - 13.35","Analisis Bahan Organik","Maulidina Rizki, S.Pd"],["13.35 - 14.10","Sejarah","Fitrul Hadi Fauzi, S.Pd"],["14.10 - 14.45","Sejarah","Fitrul Hadi Fauzi, S.Pd"],["14.45 - 15.15","Pulang",""]], "Rabu": [["Waktu","Mapel","Pengajar"],["07.15 - 08.00","Kokurikuler (Ibadah Pagi)","Pembina Keagamaan"],["08.00 - 08.35","Pendidikan Agama","Erawati, S.Ag, M.Pd.I"],["08.35 - 09.10","Pendidikan Agama","Erawati, S.Ag, M.Pd.I"],["09.10 - 09.45","Pendidikan Agama","Erawati, S.Ag, M.Pd.I"],["09.45 - 10.00","Istirahat",""],["10.00 - 10.35","Analisis Bahan Anorganik","Fatresia, S.Pd"],["10.35 - 11.10","Analisis Bahan Anorganik","Fatresia, S.Pd"],["11.10 - 11.45","Analisis Bahan Anorganik","Fatresia, S.Pd"],["11.45 - 12.20","Analisis Bahan Anorganik","Fatresia, S.Pd"],["12.20 - 13.00","Istirahat",""],["13.00 - 13.35","Mapel Pilihan","Widya Fismadita A,S.ST"],["13.35 - 14.10","Mapel Pilihan","Widya Fismadita A,S.ST"],["14.10 - 14.45","Mapel Pilihan","Widya Fismadita A,S.ST"],["14.45 - 15.15","Pulang",""]], "Kamis": [["Waktu","Mapel","Pengajar"],["07.15 - 08.00","Matematika","Didik Winarsih, S.Pd"],["08.00 - 08.35","Matematika","Didik Winarsih, S.Pd"],["08.35 - 09.10","Matematika","Didik Winarsih, S.Pd"],["09.10 - 09.45","Bahasa Inggris","Guritno Aditya Warman, S.Pd"],["09.45 - 10.00","Istirahat",""],["10.00 - 10.35","Bahasa Inggris","Guritno Aditya Warman, S.Pd"],["10.35 - 11.10","Bahasa Inggris","Guritno Aditya Warman, S.Pd"],["11.10 - 11.45","KIK","Fatresia, S.Pd"],["11.45 - 12.20","KIK","Fatresia, S.Pd"],["12.20 - 13.00","Istirahat",""],["13.00 - 13.35","KIK","Fatresia, S.Pd"],["13.35 - 14.10","KIK","Fatresia, S.Pd"],["14.10 - 14.45","KIK","Fatresia, S.Pd"],["14.45 - 15.15","Pulang",""]], "Jumat": [["Waktu","Mapel","Pengajar"],["07.00 - 08.00","Kegiatan Jumat Sehat","Pembina Jumat Sehat"],["08.00 - 08.35","Titrimetri dan Gravimetri","Eko Jayanti, S.Pd"],["08.35 - 09.10","Titrimetri dan Gravimetri","Eko Jayanti, S.Pd"],["09.10 - 09.45","Titrimetri dan Gravimetri","Eko Jayanti, S.Pd"],["09.45 - 10.00","Istirahat",""],["10.00 - 10.35","Titrimetri dan Gravimetri","Eko Jayanti, S.Pd"],["10.35 - 11.10","Titrimetri dan Gravimetri","Eko Jayanti, S.Pd"],["11.10 - 11.40","Pulang",""]] };
+const daftarNama = ["Abdi Fathoni","Abdul Wahab","Aisyila Kurnia","Alqos Khoiri Sebastian","Amelya Fitri","Anesya Febriana Dwi Wulandari Fatecha","Azriel Zailani","Bastian Efendi","Chila Nafisha Putri","Dennisa Serfiani","Dewi Nur Maharani","Fadhilah Nur Fauziyyah","Fatimah Zahra","Kartika Eka Pratiwi","M. Abid Dhaifullah Fahrul","Maria Sinta Bela","Maulida Nadhjua","Meylan Sari","Muhammad Daffa Hafidz Dzaki Pahrein","Muhammad Rajabil Rahman","Muhammad Reno Pratama Putra","Muhammad Ridho","Natasya Aulia Anggraeni","Nur Syabila","Putri Nur Azizah","Respati Rangga Kienoya","Reynold Nathanael Ziliwu","Rezqy Akbar Prasetyo","Rizky Mahendra Simamora","Steven Imanuel Yudhistira","Veronica Juanita Dastin","Yuniar Qolby","Zhaky Andra Dinata"];
+
+let lastMapel = ""; function timeToMinutes(t){const [h,m]=t.split('.').map(Number);return h*60+m;}
+function getMapelAtTime(hari,minutes){ const jadwal=dataJadwal[hari]; if(!jadwal) return null; for(let i=1;i<jadwal.length;i++){const [s,e]=jadwal[i][0].split(' - '); if(minutes>=timeToMinutes(s)&&minutes<timeToMinutes(e)) return jadwal[i][1];} return null; }
+function checkNotification(){ if(!audioEnabled) return; const now=new Date(); const utc=now.getTime()+(now.getTimezoneOffset()*60000); const today=new Date(utc+(3600000*8)); const hariArr=["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"]; const namaHari=hariArr[today.getDay()]; const cm=today.getHours()*60+today.getMinutes(); const ms=getMapelAtTime(namaHari,cm); const m1=getMapelAtTime(namaHari,cm-1); if(ms&&ms!==m1&&ms!==lastMapel){lastMapel=ms; if(ms==="Istirahat")playJapaneseBreakBell(); else if(ms==="Pulang")playJapaneseHomeBell(); else playJapaneseEnterBell();} if(today.getHours()===0&&today.getMinutes()===0)lastMapel=""; }
+function drawText(text,x,y,fontSize,align='center',bold=false,color='#000',baseline='top'){ ctx.font=`${bold?'bold':'normal'} ${fontSize}px "Segoe UI", Arial`; ctx.fillStyle=color; ctx.textAlign=align; ctx.textBaseline=baseline; ctx.fillText(text,x,y); }
+
+let food = null; let particles = [];
+
+function getCanvasPos(e){
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX / dpr / scaleFactor;
+    const y = (e.clientY - rect.top) * scaleY / dpr / scaleFactor;
+    return {x, y};
+}
+
+canvas.addEventListener('click', (e) => {
+    const pos = getCanvasPos(e);
+    food = {x: pos.x, y: pos.y, eaten: false, r: 4};
 });
 
-function playNote(freq, duration, delay = 0) {
-    if(!audioEnabled) return;
-    setTimeout(() => {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
-    }, delay);
+class Particle{ constructor(x,y){ this.x=x; this.y=y; this.vx=(Math.random()-0.5)*3; this.vy=(Math.random()-0.5)*3; this.life=30; }
+    update(){ this.x+=this.vx; this.y+=this.vy; this.life--; this.vy+=0.1; }
+    draw(){ ctx.strokeStyle=`rgba(0,0,0,${this.life/30})`; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(this.x,this.y,2,0,Math.PI*2); ctx.stroke(); }
 }
+// IKAN PAKAI SVG - BISA GEDE KECIL + ADA LABEL + WARNA BEDA
+class FishSVG{
+    constructor(startX,startY,speed,size,delay,id,name,stroke,fill){
+        this.x=startX; this.y=startY; this.startSpeed=speed; this.baseSize=size;
+        this.currentSize=size; this.eatCount=0;
+        this.maxSize=350; this.maxEats=1000;
+        this.angle=0; this.wiggle=0; this.delay=delay; this.started=false; this.entered=false;
+        this.vx=speed; this.vy=(Math.random()-0.5)*0.5; this.targetVx=speed; this.targetVy=0;
+        this.id=id; this.name=name; this.stroke=stroke; this.fill=fill;
 
-function playJapaneseEnterBell() {
-    playNote(523, 0.25, 0);
-    playNote(587, 0.25, 250);
-    playNote(659, 0.25, 500);
-    playNote(784, 0.5, 750);
-}
-function playJapaneseBreakBell() {
-    playNote(784, 0.3, 0);
-    playNote(659, 0.3, 300);
-    playNote(587, 0.3, 600);
-    playNote(523, 0.6, 900);
-}
-function playJapaneseHomeBell() {
-    const melody = [523, 659, 784, 1046];
-    for(let i = 0; i < 2; i++) {
-        melody.forEach((note, idx) => {
-            playNote(note, 0.3, (i * 1400) + (idx * 300));
-        });
+        this.g = document.createElementNS("http://www.w3.org/2000/svg","g");
+        this.label = document.createElementNS("http://www.w3.org/2000/svg","text");
+        this.label.setAttribute("font-family", "Segoe UI, Arial");
+        this.label.setAttribute("font-size", "12");
+        this.label.setAttribute("font-weight", "bold");
+        this.label.setAttribute("text-anchor", "middle");
+        this.label.setAttribute("fill", "#000");
+        this.label.textContent = this.name;
+        svg.appendChild(this.g);
+        svg.appendChild(this.label);
+    }
+
+    grow(){
+        this.eatCount++;
+        let progress = this.eatCount / this.maxEats;
+        if(progress > 1) progress = 1;
+        this.currentSize = this.baseSize + (this.maxSize - this.baseSize) * Math.sqrt(progress);
+        this.label.setAttribute("font-size", 10 + this.currentSize/20);
+    }
+
+    update(time){
+        if(time<this.delay)return;
+        this.started=true;
+        if(!this.entered){
+            this.x+=this.startSpeed;
+            if(this.x>50){ this.entered=true; }
+        } else {
+            if(food &&!food.eaten){
+                let dx=food.x-this.x;
+                let dy=food.y-this.y;
+                let dist=Math.sqrt(dx*dx+dy*dy);
+                if(dist<food.r+this.currentSize/2){
+                    food.eaten=true;
+                    this.grow();
+                    for(let i=0;i<8;i++) particles.push(new Particle(food.x, food.y));
+                }
+                this.targetVx=dx/dist*2;
+                this.targetVy=dy/dist*2;
+            } else {
+                this.targetVx+=(Math.random()-0.5)*0.15;
+                this.targetVy+=(Math.random()-0.5)*0.15;
+                let speed=Math.sqrt(this.targetVx*this.targetVx+this.targetVy*this.targetVy);
+                if(speed>1.5){this.targetVx=this.targetVx/speed*1.5; this.targetVy=this.targetVy/speed*1.5;}
+            }
+            this.vx += (this.targetVx - this.vx) * 0.1;
+            this.vy += (this.targetVy - this.vy) * 0.1;
+            this.x+=this.vx;
+            this.y+=this.vy;
+
+            if(this.x<this.currentSize) {this.x=this.currentSize; this.vx*=-0.8;}
+            if(this.x>slideWidth-this.currentSize) {this.x=slideWidth-this.currentSize; this.vx*=-0.8;}
+            if(this.y<this.currentSize) {this.y=this.currentSize; this.vy*=-0.8;}
+            if(this.y>slideHeight-this.currentSize) {this.y=slideHeight-this.currentSize; this.vy*=-0.8;}
+        }
+        this.wiggle+=0.25;
+        this.angle=Math.atan2(this.vy,this.vx)*180/Math.PI;
+        this.draw();
+    }
+
+    draw(){
+        if(!this.started) return;
+        const s = this.currentSize * 0.5;
+        const tailWiggle = Math.sin(this.wiggle*2.2)*9;
+        const pectoralWiggle = Math.sin(this.wiggle*3.5)*3;
+
+        this.g.setAttribute("transform", `translate(${this.x},${this.y}) rotate(${this.angle})`);
+        this.g.innerHTML = `
+        <g stroke="${this.stroke}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="0" cy="0" rx="${s*1.2}" ry="${s}" fill="${this.fill}"/>
+            ${[-4,-2,0,2,4].map(i=>`<path d="M${-s*0.6},${i} Q0,${i-1.5} ${s*0.5},${i}" fill="none"/>`).join('')}
+            <circle cx="${s/2}" cy="${-s/3}" r="2" fill="${this.fill}"/>
+            <circle cx="${s/2}" cy="${s/3}" r="2" fill="${this.fill}"/>
+            <circle cx="${s/2+0.5}" cy="${-s/3-0.5}" r="0.6" fill="#fff" stroke="none"/>
+            <circle cx="${s/2+0.5}" cy="${s/3-0.5}" r="0.6" fill="#fff" stroke="none"/>
+            <path d="M${-s*0.8},${tailWiggle} Q${-s*1.1},${tailWiggle} ${-s*1.4},${tailWiggle-8} Q${-s*1.2},${tailWiggle} ${-s*1.4},${tailWiggle+8} Q${-s*1.1},${tailWiggle} ${-s*0.8},${tailWiggle}" fill="${this.fill}"/>
+            <ellipse cx="${s/4}" cy="${-s/1.8 + pectoralWiggle}" rx="4" ry="7" fill="${this.fill}" transform="rotate(${pectoralWiggle*0.1} ${s/4} ${-s/1.8 + pectoralWiggle})"/>
+            <ellipse cx="${s/4}" cy="${s/1.8 + pectoralWiggle}" rx="4" ry="7" fill="${this.fill}" transform="rotate(${-pectoralWiggle*0.1} ${s/4} ${s/1.8 + pectoralWiggle})"/>
+        </g>`;
+
+        this.label.setAttribute("x", this.x);
+        this.label.setAttribute("y", this.y - this.currentSize - 15);
     }
 }
 
-// DATA JADWAL - PULANG 30 MENIT SEMUA
-const dataJadwal = {
-    "Senin": [["Waktu", "Mapel", "Pengajar"],["07.00 - 08.00", "Upacara Bendera", "Inspektur Upacara"],["08.00 - 08.35", "Bahasa Indonesia", "Delis Oktryana, S.Pd"],["08.35 - 09.10", "Bahasa Indonesia", "Delis Oktryana, S.Pd"],["09.10 - 09.45", "Bahasa Indonesia", "Delis Oktryana, S.Pd"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "PJOK", "Idham Ibrahim, S.Pd"],["10.35 - 11.10", "PJOK", "Idham Ibrahim, S.Pd"],["11.10 - 11.45", "Pendidikan Pancasila", "Dra. Nunung Catur Wijayanti"],["11.45 - 12.20", "Istirahat", ""],["12.20 - 13.00", "Pendidikan Pancasila", "Dra. Nunung Catur Wijayanti"],["13.00 - 13.30", "Pulang", ""]],
-    "Selasa": [["Waktu", "Mapel", "Pengajar"],["07.15 - 08.00", "Analisis Kimia", "Widya Fismadita A,S.ST"],["08.00 - 08.35", "Analisis Kimia", "Widya Fismadita A,S.ST"],["08.35 - 09.10", "Analisis Kimia", "Widya Fismadita A,S.ST"],["09.10 - 09.45", "Analisis Kimia", "Widya Fismadita A,S.ST"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["10.35 - 11.10", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["11.10 - 11.45", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["11.45 - 12.20", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["12.20 - 13.00", "Istirahat", ""],["13.00 - 13.35", "Analisis Bahan Organik", "Maulidina Rizki, S.Pd"],["13.35 - 14.10", "Sejarah", "Fitrul Hadi Fauzi, S.Pd"],["14.10 - 14.45", "Sejarah", "Fitrul Hadi Fauzi, S.Pd"],["14.45 - 15.15", "Pulang", ""]],
-    "Rabu": [["Waktu", "Mapel", "Pengajar"],["07.15 - 08.00", "Kokurikuler (Ibadah Pagi)", "Pembina Keagamaan"],["08.00 - 08.35", "Pendidikan Agama", "Erawati, S.Ag, M.Pd.I"],["08.35 - 09.10", "Pendidikan Agama", "Erawati, S.Ag, M.Pd.I"],["09.10 - 09.45", "Pendidikan Agama", "Erawati, S.Ag, M.Pd.I"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Analisis Bahan Anorganik", "Fatresia, S.Pd"],["10.35 - 11.10", "Analisis Bahan Anorganik", "Fatresia, S.Pd"],["11.10 - 11.45", "Analisis Bahan Anorganik", "Fatresia, S.Pd"],["11.45 - 12.20", "Analisis Bahan Anorganik", "Fatresia, S.Pd"],["12.20 - 13.00", "Istirahat", ""],["13.00 - 13.35", "Mapel Pilihan", "Widya Fismadita A,S.ST"],["13.35 - 14.10", "Mapel Pilihan", "Widya Fismadita A,S.ST"],["14.10 - 14.45", "Mapel Pilihan", "Widya Fismadita A,S.ST"],["14.45 - 15.15", "Pulang", ""]],
-    "Kamis": [["Waktu", "Mapel", "Pengajar"],["07.15 - 08.00", "Matematika", "Didik Winarsih, S.Pd"],["08.00 - 08.35", "Matematika", "Didik Winarsih, S.Pd"],["08.35 - 09.10", "Matematika", "Didik Winarsih, S.Pd"],["09.10 - 09.45", "Bahasa Inggris", "Guritno Aditya Warman, S.Pd"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Bahasa Inggris", "Guritno Aditya Warman, S.Pd"],["10.35 - 11.10", "Bahasa Inggris", "Guritno Aditya Warman, S.Pd"],["11.10 - 11.45", "KIK", "Fatresia, S.Pd"],["11.45 - 12.20", "KIK", "Fatresia, S.Pd"],["12.20 - 13.00", "Istirahat", ""],["13.00 - 13.35", "KIK", "Fatresia, S.Pd"],["13.35 - 14.10", "KIK", "Fatresia, S.Pd"],["14.10 - 14.45", "KIK", "Fatresia, S.Pd"],["14.45 - 15.15", "Pulang", ""]],
-    "Jumat": [["Waktu", "Mapel", "Pengajar"],["07.00 - 08.00", "Kegiatan Jumat Sehat", "Pembina Jumat Sehat"],["08.00 - 08.35", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["08.35 - 09.10", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["09.10 - 09.45", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["09.45 - 10.00", "Istirahat", ""],["10.00 - 10.35", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["10.35 - 11.10", "Titrimetri dan Gravimetri", "Eko Jayanti, S.Pd"],["11.10 - 11.40", "Pulang", ""]]
-};
+// 2 IKAN: UNO PUTIH, GRIT HITAM
+const fishes=[
+    new FishSVG(-100,300,1.5,12,0,1,"Uno","#111","#fff"),
+    new FishSVG(-150,500,1.3,10,2000,2,"Grit","#000","#000")
+];
 
-// DATA NAMA MURID
-const daftarNama = ["Abdi Fathoni","Abdul Wahab","Aisyila Kurnia","Alqus Khoiri Sebastian","Amelya Fitri","Arnesya Febriana Dwi Wulandari Fatecha","Azriel Zailani","Bastian Efendi","Chila Nafisha Putri","Dennisa Serfiani","Dewi Nur Maharani","Fadhilah Nur Fauziyyah","Fatimah Zahra","Kartika Eka Pratiwi","M. Abid Dhaifullah Fahrul","Maria Sinta Bela","Maulida Nadjhua","Meylan Sari","Muhammad Daffa Hafidz Dzaki Pahrein","Muhammad Rajabil Rahman","Muhammad Reno Pratama Putra","Muhammad Ridho","Natasya Aulia Anggraeni","Nur Syabila","Putri Nur Azizah","Respati Rangga Kienoya","Reynold Nathanael Ziliwu","Rezqy Akbar Prasetyo","Rizky Mahendra Simamora","Steven Imanuel Yudhistira","Veronica Juanita Dastin","Yuniar Qolby","Zhaky Andra Dinata"];
-
-let lastMapel = "";
-function timeToMinutes(timeStr) {
-    const [h, m] = timeStr.split('.').map(Number);
-    return h * 60 + m;
-}
-function getMapelAtTime(hari, minutes) {
-    const jadwal = dataJadwal[hari];
-    if(!jadwal) return null;
-    for(let i = 1; i < jadwal.length; i++) {
-        const row = jadwal[i];
-        const [start, end] = row[0].split(' - ');
-        const startMin = timeToMinutes(start);
-        const endMin = timeToMinutes(end);
-        if(minutes >= startMin && minutes < endMin) return row[1];
+function drawEffects(){
+    if(food &&!food.eaten){
+        ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(food.x, food.y, food.r, 0, Math.PI*2); ctx.fill();
     }
-    return null;
-}
-function checkNotification() {
-    if(!audioEnabled) return;
-    const now = new Date();
-    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const today = new Date(utc + (3600000 * 8));
-    const hariArr = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-    const namaHari = hariArr[today.getDay()];
-    const currentMinutes = today.getHours() * 60 + today.getMinutes();
-    const mapelSekarang = getMapelAtTime(namaHari, currentMinutes);
-    const mapel1MenitLalu = getMapelAtTime(namaHari, currentMinutes - 1);
-
-    if(mapelSekarang && mapelSekarang!== mapel1MenitLalu && mapelSekarang!== lastMapel) {
-        lastMapel = mapelSekarang;
-        if(mapelSekarang === "Istirahat") playJapaneseBreakBell();
-        else if(mapelSekarang === "Pulang") playJapaneseHomeBell();
-        else if(mapelSekarang!== "") playJapaneseEnterBell();
-    }
-    if(today.getHours() === 0 && today.getMinutes() === 0) lastMapel = "";
+    if(food && food.eaten) food=null;
+    particles = particles.filter(p => p.life > 0); particles.forEach(p => { p.update(); p.draw(); });
 }
 
-function drawText(text, x, y, fontSize, align = 'center', bold = false, color = '#000', baseline = 'top'){
-    ctx.font = `${bold? 'bold' : 'normal'} ${fontSize}px "Segoe UI", Arial`;
-    ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = baseline; ctx.fillText(text, x, y);
-}
-function drawTable(hari, startX, startY, tableWidth){
-    const jadwalAsli = dataJadwal[hari];
-    const jadwal = jadwalAsli.filter(row => row[1]!== "Pulang");
-
-    const rowHeight = 22;
-    const colWidths = [75, tableWidth - 75 - 140, 140];
-    drawText(hari, startX, startY - 22, 14, 'left', true, '#000', 'top');
-    ctx.fillStyle = '#d9d9d9'; ctx.fillRect(startX, startY, tableWidth, rowHeight);
-
-    let hasPJOK = false;
-    let hasKIK = false;
-    let hasTitrimetri = false;
-    let hasMapelPilihan = false;
-
-    for(let i = 0; i < jadwal.length; i++){
-        let y = startY + i * rowHeight; let row = jadwal[i]; let x = startX;
-        if(row[1] === "PJOK") hasPJOK = true;
-        if(row[1] === "KIK") hasKIK = true;
-        if(row[1] === "Titrimetri dan Gravimetri") hasTitrimetri = true;
-        if(row[1] === "Mapel Pilihan") hasMapelPilihan = true;
-
-        if(row[0].includes("Istirahat")){ ctx.fillStyle = '#000'; ctx.fillRect(startX, y, tableWidth, rowHeight); ctx.fillStyle = '#fff'; } else { ctx.fillStyle = '#000'; }
-        ctx.strokeStyle = '#444'; ctx.lineWidth = 1; ctx.strokeRect(startX, y, tableWidth, rowHeight);
-        ctx.beginPath(); ctx.moveTo(x + colWidths[0], y); ctx.lineTo(x + colWidths[0], y + rowHeight);
-        ctx.moveTo(x + colWidths[0] + colWidths[1], y); ctx.lineTo(x + colWidths[0] + colWidths[1], y + rowHeight); ctx.stroke();
-        
-        let isHeader = i === 0; 
-        let fontSize = isHeader? 11 : 10; 
-        let bold = isHeader;
-        let yCenter = y + rowHeight / 2;
-
-        drawText(row[0], x + colWidths[0]/2, yCenter, fontSize, 'center', bold, '#000', 'middle');
-        drawText(row[1], x + colWidths[0] + 5, yCenter, fontSize, 'left', bold, '#000', 'middle');
-        drawText(row[2], x + colWidths[0] + colWidths[1] + 5, yCenter, fontSize, 'left', bold, '#000', 'middle');
+function drawTable(hari,startX,startY,tableWidth){
+    const jadwalAsli=dataJadwal[hari]; const jadwal=jadwalAsli.filter(row=>row[1]!=="Pulang");
+    const rowHeight=22; const colWidths=[75,tableWidth-75-140,140];
+    drawText(hari,startX,startY-22,14,'left',true,'#000','top'); ctx.fillStyle='#d9d9d9';ctx.fillRect(startX,startY,tableWidth,rowHeight);
+    let hasPJOK=false,hasKIK=false,hasTitrimetri=false,hasMapelPilihan=false;
+    for(let i=0;i<jadwal.length;i++){ let y=startY+i*rowHeight;let row=jadwal[i];let x=startX; if(row[1]==="PJOK")hasPJOK=true; if(row[1]==="KIK")hasKIK=true; if(row[1]==="Titrimetri dan Gravimetri")hasTitrimetri=true; if(row[1]==="Mapel Pilihan")hasMapelPilihan=true;
+        if(row[0].includes("Istirahat")){ctx.fillStyle='#000';ctx.fillRect(startX,y,tableWidth,rowHeight);ctx.fillStyle='#fff';}else{ctx.fillStyle='#000';}
+        ctx.strokeStyle='#444';ctx.lineWidth=1;ctx.strokeRect(startX,y,tableWidth,rowHeight);
+        ctx.beginPath();ctx.moveTo(x+colWidths[0],y);ctx.lineTo(x+colWidths[0],y+rowHeight);ctx.moveTo(x+colWidths[0]+colWidths[1],y);ctx.lineTo(x+colWidths[0]+colWidths[1],y+rowHeight);ctx.stroke();
+        let isHeader=i===0;let fontSize=isHeader?11:10;let bold=isHeader;let yCenter=y+rowHeight/2;
+        drawText(row[0],x+colWidths[0]/2,yCenter,fontSize,'center',bold,'#000','middle'); drawText(row[1],x+colWidths[0]+5,yCenter,fontSize,'left',bold,'#000','middle'); drawText(row[2],x+colWidths[0]+colWidths[1]+5,yCenter,fontSize,'left',bold,'#000','middle');
     }
-
-    let noteY = startY + jadwal.length * rowHeight + 5;
-    if(hasPJOK){
-        drawText("PJOK = Pendidikan Jasmani, Olahraga, dan Kesehatan", startX, noteY, 9, 'left', false, '#333', 'top');
-        noteY += 14;
-    }
-    if(hasKIK){
-        drawText("KIK = Kreativitas, Inovasi, dan Kewirausahaan", startX, noteY, 9, 'left', false, '#333', 'top');
-        noteY += 14;
-    }
-    if(hasTitrimetri){
-        drawText("Titrimetri dan Gravimetri = Analisis Titrimetri dan Gravimetri", startX, noteY, 9, 'left', false, '#333', 'top');
-        noteY += 14;
-    }
-    if(hasMapelPilihan){
-        drawText("Mapel Pilihan = Analisis Batu Bara", startX, noteY, 9, 'left', false, '#333', 'top'); // BARU DITAMBAH
-    }
-    return noteY;
+    let noteY=startY+jadwal.length*rowHeight+5;
+    if(hasPJOK){drawText("PJOK = Pendidikan Jasmani, Olahraga, dan Kesehatan",startX,noteY,9,'left',false,'#333','top');noteY+=14;}
+    if(hasKIK){drawText("KIK = Kreativitas, Inovasi, dan Kewirausahaan",startX,noteY,9,'left',false,'#333','top');noteY+=14;}
+    if(hasTitrimetri){drawText("Titrimetri dan Gravimetri = Analisis Titrimetri dan Gravimetri",startX,noteY,9,'left',false,'#333','top');noteY+=14;}
+    if(hasMapelPilihan){drawText("Mapel Pilihan = Analisis Batu Bara",startX,noteY,9,'left',false,'#333','top');}
 }
 
-function drawNotebookPaper() {
-    ctx.fillStyle = '#fefcf3'; ctx.fillRect(0, 0, slideWidth, slideHeight);
-    ctx.strokeStyle = '#cce0ff'; ctx.lineWidth = 1;
-    for (let y = lineHeight; y < slideHeight; y += lineHeight) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(slideWidth, y); ctx.stroke(); }
-    
-    const now = new Date(); const utc = now.getTime() + (now.getTimezoneOffset() * 60000); const today = new Date(utc + (3600000 * 8));
-    const hariArr = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-    const bulanArr = ["JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"];
-    const namaHari = hariArr[today.getDay()]; const tanggal = today.getDate(); const namaBulan = bulanArr[today.getMonth()];
-    const currentMinutes = today.getHours() * 60 + today.getMinutes();
-    const mapelSekarang = getMapelAtTime(namaHari, currentMinutes) || "Di luar jam pelajaran";
-    const boxH = 100; const calW = 120; const calX = slideWidth/2 - calW/2 - 285; const calY = 20;
-    ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.strokeRect(calX, calY, calW, boxH); ctx.fillStyle = '#000'; ctx.fillRect(calX, calY, calW, 25);
-    drawText(namaBulan, calX + calW/2, calY + 4, 14, 'center', true, '#fff', 'top');
-    ctx.setLineDash([2, 2]); ctx.beginPath(); ctx.moveTo(calX + 5, calY + 25); ctx.lineTo(calX + calW - 5, calY + 25); ctx.stroke(); ctx.setLineDash([]);
-    drawText(tanggal, calX + calW/2, calY + 38, 40, 'center', true, '#000', 'top');
-    drawText(namaHari.toUpperCase(), calX + calW/2, calY + 82, 14, 'center', true, '#000', 'top');
-    
-    const clockW = 175; const clockX = calX + calW + 25; const clockY = calY;
-    ctx.strokeRect(clockX, clockY, clockW, boxH); ctx.fillRect(clockX, clockY, clockW, 25);
-    drawText("WAKTU", clockX + clockW/2, clockY + 4, 14, 'center', true, '#fff', 'top');
-    const hours = String(today.getHours()).padStart(2, '0'); const minutes = String(today.getMinutes()).padStart(2, '0'); const seconds = String(today.getSeconds()).padStart(2, '0');
-    drawText(`${hours}:${minutes}:${seconds}`, clockX + clockW/2, clockY + 38, 40, 'center', true, '#000', 'top');
-    drawText("WITA", clockX + clockW/2, clockY + 82, 14, 'center', true, '#000', 'top');
-    
-    const mapelW = 345; const mapelX = clockX + clockW + 25; const mapelY = calY;
-    ctx.strokeRect(mapelX, mapelY, mapelW, boxH); ctx.fillRect(mapelX, mapelY, mapelW, 25);
-    drawText("SAAT INI", mapelX + mapelW/2, mapelY + 4, 14, 'center', true, '#fff', 'top');
-    drawText(mapelSekarang, mapelX + mapelW/2, mapelY + 50, 22, 'center', true, '#000', 'top');
-    
-    const offsetY = 140;
-    drawText("JADWAL PELAJARAN", slideWidth/2, 20 + offsetY, 26, 'center', true, '#000', 'top');
-    drawText("Kelas XI-Kimia Analisis", slideWidth/2, 55 + offsetY, 16, 'center', false, '#000', 'top');
-    drawText("Wali Kelas: Guritno Aditya Warman, S.Pd", slideWidth - 50, 80 + offsetY, 12, 'right', false, '#000', 'top');
-    const tableWidth = 350; const gap = 25;
-    
-    drawTable("Senin", 30, 135 + gap + offsetY, tableWidth);
-    drawTable("Selasa", 30, 455 + gap + offsetY, tableWidth);
-    drawTable("Rabu", 30, 825 + gap + offsetY, tableWidth);
-    drawTable("Kamis", 390, 135 + gap + offsetY, tableWidth);
-    drawTable("Jumat", 390, 495 + gap + offsetY, tableWidth);
+let startTime=Date.now();
+function drawNotebookPaper(){
+    const currentTime=Date.now()-startTime;
+    ctx.fillStyle='#fefcf3';ctx.fillRect(0,0,slideWidth,slideHeight);
+    ctx.strokeStyle='#cce0ff';ctx.lineWidth=1; for(let y=lineHeight;y<slideHeight;y+=lineHeight){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(slideWidth,y);ctx.stroke();}
+    const now=new Date(); const utc=now.getTime()+(now.getTimezoneOffset()*60000); const today=new Date(utc+(3600000*8));
+    const hariArr=["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"]; const bulanArr=["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
+    const namaHari=hariArr[today.getDay()];const tanggal=today.getDate();const namaBulan=bulanArr[today.getMonth()];
+    const currentMinutes=today.getHours()*60+today.getMinutes(); const mapelSekarang=getMapelAtTime(namaHari,currentMinutes)||"Di luar jam pelajaran";
+    const boxH=100;const calW=120;const calX=slideWidth/2-calW/2-285;const calY=20;
+    ctx.strokeStyle='#000';ctx.lineWidth=2;ctx.strokeRect(calX,calY,calW,boxH);ctx.fillStyle='#000';ctx.fillRect(calX,calY,calW,25);
+    drawText(namaBulan,calX+calW/2,calY+4,14,'center',true,'#fff','top'); ctx.setLineDash([2,2]);ctx.beginPath();ctx.moveTo(calX+5,calY+25);ctx.lineTo(calX+calW-5,calY+25);ctx.stroke();ctx.setLineDash([]);
+    drawText(tanggal,calX+calW/2,calY+38,40,'center',true,'#000','top'); drawText(namaHari.toUpperCase(),calX+calW/2,calY+82,14,'center',true,'#000','top');
+    const clockW=175;const clockX=calX+calW+25;const clockY=calY; ctx.strokeRect(clockX,clockY,clockW,boxH);ctx.fillRect(clockX,clockY,clockW,25);
+    drawText("WAKTU",clockX+clockW/2,clockY+4,14,'center',true,'#fff','top'); const hours=String(today.getHours()).padStart(2,'0');const minutes=String(today.getMinutes()).padStart(2,'0');const seconds=String(today.getSeconds()).padStart(2,'0');
+    drawText(`${hours}:${minutes}:${seconds}`,clockX+clockW/2,clockY+38,40,'center',true,'#000','top'); drawText("WITA",clockX+clockW/2,clockY+82,14,'center',true,'#000','top');
+    const mapelW=345;const mapelX=clockX+clockW+25;const mapelY=calY; ctx.strokeRect(mapelX,mapelY,mapelW,boxH);ctx.fillRect(mapelX,mapelY,mapelW,25);
+    drawText("SAAT INI",mapelX+mapelW/2,mapelY+4,14,'center',true,'#fff','top'); drawText(mapelSekarang,mapelX+mapelW/2,mapelY+50,22,'center',true,'#000','top');
+    const offsetY=140; drawText("JADWAL PELAJARAN",slideWidth/2,20+offsetY,26,'center',true,'#000','top'); drawText("Kelas XI-Kimia Analisis",slideWidth/2,55+offsetY,16,'center',false,'#000','top'); drawText("Wali Kelas: Guritno Aditya Warman, S.Pd",slideWidth-50,80+offsetY,12,'right',false,'#000','top');
+    const tableWidth=350;const gap=25; drawTable("Senin",30,135+gap+offsetY,tableWidth); drawTable("Selasa",30,455+gap+offsetY,tableWidth); drawTable("Rabu",30,825+gap+offsetY,tableWidth); drawTable("Kamis",390,135+gap+offsetY,tableWidth); drawTable("Jumat",390,495+gap+offsetY,tableWidth);
+    const jumatY=495+gap+offsetY; const jumatH=9*22; const rabuY=825+gap+offsetY; const rabuH=15*22; const boxX=390; const boxY=jumatY+jumatH+20; const boxW=tableWidth+18; const boxH2=((rabuY+rabuH)-boxY)-150;
+    ctx.strokeStyle='#444';ctx.lineWidth=1;ctx.strokeRect(boxX,boxY,boxW,boxH2); drawText("XI-KIMIA ANALISIS",boxX+boxW/2,boxY+8,12,'center',true,'#000','top'); drawText("SMK NEGERI 6 SAMARINDA",boxX+boxW/2,boxY+24,10,'center',false,'#000','top');
+    const colWidth=boxW/2; const startY=boxY+52; const lineH=14; const totalNama=daftarNama.length; const maxPerKolom=Math.ceil(totalNama/2);
+    daftarNama.forEach((nama,index)=>{let col=index>=maxPerKolom?1:0; let row=col===0?index:index-maxPerKolom; let xPos=boxX+12+(col*colWidth); let yPos=startY+(row*lineH); ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(xPos+3,yPos+6,1.5,0,Math.PI*2); ctx.fill(); drawText(nama,xPos+10,yPos,9,'left',false,'#000','top'); });
+    const infoBoxH=52; const infoBoxY=boxY+boxH2+14; ctx.strokeStyle='#000'; ctx.lineWidth=1; ctx.strokeRect(boxX,infoBoxY,boxW,infoBoxH); drawText("SEMESTER GANJIL",boxX+boxW/2,infoBoxY+12,12,'center',true,'#000','top'); drawText("TAHUN AJARAN 2026/2027",boxX+boxW/2,infoBoxY+32,11,'center',false,'#000','top');
+    const countdownBoxY=infoBoxY+infoBoxH+9; const countdownBoxH=52; ctx.strokeRect(boxX,countdownBoxY,boxW,countdownBoxH);
+    const stopDate=new Date(2026,10,30,8,0,0); const isStopped=today>=stopDate; const startSemester=new Date(2026,6,13,7,0,0);
+    let diffBerjalan=isStopped?(stopDate-startSemester):(today-startSemester); let hariBerjalan=0,jamBerjalan=0,menitBerjalan=0,detikBerjalan=0;
+    if(diffBerjalan>0){hariBerjalan=Math.floor(diffBerjalan/(1000*60*60*24)); jamBerjalan=Math.floor((diffBerjalan%(1000*60*60*24))/(1000*60*60)); menitBerjalan=Math.floor((diffBerjalan%(1000*60*60))/(1000*60)); detikBerjalan=Math.floor((diffBerjalan%(1000*60))/1000);}
+    drawText(`Semester berjalan: ${hariBerjalan} hari ${jamBerjalan} jam ${menitBerjalan} menit ${detikBerjalan} detik.`,boxX+boxW/2,countdownBoxY+12,10,'center',false,'#000','top');
+    let diffMenuju=isStopped?0:(stopDate-today); let hariMenuju=0,jamMenuju=0,menitMenuju=0,detikMenuju=0;
+    if(diffMenuju>0){hariMenuju=Math.floor(diffMenuju/(1000*60*60*24)); jamMenuju=Math.floor((diffMenuju%(1000*60*60*24))/(1000*60*60)); menitMenuju=Math.floor((diffMenuju%(1000*60*60))/(1000*60)); detikMenuju=Math.floor((diffMenuju%(1000*60))/1000);}
+    drawText(`Tinggal ${hariMenuju} hari ${jamMenuju} jam ${menitMenuju} menit ${detikMenuju} detik menuju Asesmen Sumatif Akhir.`,boxX+boxW/2,countdownBoxY+32,10,'center',false,'#000','top');
 
-    const jumatY = 495 + gap + offsetY;
-    const jumatH = 9 * 22;
-    const rabuY = 825 + gap + offsetY;
-    const rabuH = 15 * 22;
-    const boxX = 390;
-    const boxY = jumatY + jumatH + 20;
-    const boxW = tableWidth + 18;
-    const boxH2 = ((rabuY + rabuH) - boxY) - 150;
-    ctx.strokeStyle = '#444';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(boxX, boxY, boxW, boxH2);
-
-    drawText("XI-KIMIA ANALISIS", boxX + boxW/2, boxY + 8, 12, 'center', true, '#000', 'top');
-    drawText("SMK NEGERI 6 SAMARINDA", boxX + boxW/2, boxY + 24, 10, 'center', false, '#000', 'top');
-
-    const colWidth = boxW / 2;
-    const startY = boxY + 52;
-    const lineH = 14;
-    const totalNama = daftarNama.length;
-    const maxPerKolom = Math.ceil(totalNama / 2);
-    
-    daftarNama.forEach((nama, index) => {
-        let col = index >= maxPerKolom ? 1 : 0;
-        let row = col === 0 ? index : index - maxPerKolom;
-        let xPos = boxX + 12 + (col * colWidth);
-        let yPos = startY + (row * lineH);
-        
-        ctx.fillStyle = '#000';
-        ctx.beginPath();
-        ctx.arc(xPos + 3, yPos + 6, 1.5, 0, Math.PI * 2);
-        ctx.fill();
-        drawText(nama, xPos + 10, yPos, 9, 'left', false, '#000', 'top');
-    });
-
-    const infoBoxH = 52;
-    const infoBoxY = boxY + boxH2 + 14;
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(boxX, infoBoxY, boxW, infoBoxH);
-    drawText("SEMESTER GANJIL", boxX + boxW/2, infoBoxY + 12, 12, 'center', true, '#000', 'top');
-    drawText("TAHUN AJARAN 2026/2027", boxX + boxW/2, infoBoxY + 32, 11, 'center', false, '#000', 'top');
-
-    const countdownBoxY = infoBoxY + infoBoxH + 9;
-    const countdownBoxH = 52;
-    ctx.strokeRect(boxX, countdownBoxY, boxW, countdownBoxH);
-
-    const stopDate = new Date(2026, 10, 30, 8, 0, 0);
-    const isStopped = today >= stopDate;
-
-    const startSemester = new Date(2026, 6, 13, 7, 0, 0);
-    let diffBerjalan = isStopped ? (stopDate - startSemester) : (today - startSemester);
-    let hariBerjalan = 0, jamBerjalan = 0, menitBerjalan = 0, detikBerjalan = 0;
-    if(diffBerjalan > 0){
-        hariBerjalan = Math.floor(diffBerjalan / (1000*60*60*24));
-        jamBerjalan = Math.floor((diffBerjalan % (1000*60*60*24)) / (1000*60*60));
-        menitBerjalan = Math.floor((diffBerjalan % (1000*60*60)) / (1000*60));
-        detikBerjalan = Math.floor((diffBerjalan % (1000*60)) / 1000);
-    }
-    const textBaris1 = `Semester berjalan: ${hariBerjalan} hari ${jamBerjalan} jam ${menitBerjalan} menit ${detikBerjalan} detik.`;
-    drawText(textBaris1, boxX + boxW/2, countdownBoxY + 12, 10, 'center', false, '#000', 'top');
-
-    let diffMenuju = isStopped ? 0 : (stopDate - today); 
-    let hariMenuju = 0, jamMenuju = 0, menitMenuju = 0, detikMenuju = 0;
-    if(diffMenuju > 0){
-        hariMenuju = Math.floor(diffMenuju / (1000*60*60*24));
-        jamMenuju = Math.floor((diffMenuju % (1000*60*60*24)) / (1000*60*60));
-        menitMenuju = Math.floor((diffMenuju % (1000*60*60)) / (1000*60));
-        detikMenuju = Math.floor((diffMenuju % (1000*60)) / 1000);
-    }
-    const textBaris2 = `Tinggal ${hariMenuju} hari ${jamMenuju} jam ${menitMenuju} menit ${detikMenuju} detik menuju Asesmen Sumatif Akhir.`;
-    drawText(textBaris2, boxX + boxW/2, countdownBoxY + 32, 10, 'center', false, '#000', 'top');
+    fishes.forEach(f=>f.update(currentTime));
+    drawEffects();
 }
-drawNotebookPaper();
-setInterval(drawNotebookPaper, 1000);
-setInterval(checkNotification, 1000);
+drawNotebookPaper(); setInterval(drawNotebookPaper,1000/60); setInterval(checkNotification,1000);
 </script>
 </body>
 </html>
