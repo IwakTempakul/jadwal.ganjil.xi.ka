@@ -6,7 +6,7 @@
 <title>Jadwal XI-Kimia Analisis</title>
 <style>
     body {margin: 0;background: #222;display: flex;justify-content: flex-start;align-items: flex-start;min-height: 100vh;overflow: auto;padding: 20px;box-sizing: border-box;}
-    #wrapper {position: relative;transform-origin: top left;}
+    #wrapper {position: relative;transform-origin: top left;transition: transform 0.3s ease;} /* ditambahin transisi biar smooth */
     #container {width: 768px;height: 1366px;position: relative;background: #fff;box-shadow: 0 10px 30px rgba(0,0,0,0.5);}
     canvas { width: 100%; height: 100%; display: block; }
     #btnAudio {position: absolute;top: 150px;right: 43px;z-index: 999;padding: 10px 16px;background: #000;color: #fff;border: 2px solid #000;border-radius: 8px;font-size: 13px;font-weight: bold;cursor: pointer;box-shadow: none;transition: opacity 0.5s, background 0.2s, color 0.2s;display: flex;align-items: center;gap: 6px;}
@@ -35,7 +35,7 @@
 <canvas id="paperBG"></canvas>
 </div></div>
 
-<!-- HTML OVERLAY + ZOOM HARUS ADA -->
+<!-- HTML OVERLAY + ZOOM -->
 <div class="overlay" id="overlay" onclick="hideOverlay()">
   <div class="overlay-content" id="overlayContent"></div>
 </div>
@@ -50,6 +50,17 @@ document.getElementById('zoomIn').onclick = () => { currentScale = Math.min(curr
 document.getElementById('zoomOut').onclick = () => { currentScale = Math.max(currentScale - 0.2, 0.2); applyZoom(); }
 document.getElementById('zoomReset').onclick = () => { currentScale = 1; applyZoom(); }
 window.addEventListener('wheel', (e) => {if(e.ctrlKey) {e.preventDefault();if(e.deltaY < 0) currentScale = Math.min(currentScale + 0.1, 3);else currentScale = Math.max(currentScale - 0.1, 0.2);applyZoom();}}, {passive: false});
+
+// FUNGSI BARU: ZOOM FIT LAYAR
+function zoomFitLayar() {
+  const containerWidth = 768; // lebar canvas lu
+  const screenWidth = window.innerWidth - 40; // -40 biar ada padding
+  currentScale = screenWidth / containerWidth;
+  if(currentScale > 1) currentScale = 1; // jangan zoom in
+  applyZoom();
+  window.scrollTo(0, 0); // scroll ke atas
+}
+
 let audioCtx;let audioEnabled = false;document.getElementById('btnAudio').addEventListener('click', () => {audioCtx = new (window.AudioContext || window.webkitAudioContext)();audioEnabled = true;const btn = document.getElementById('btnAudio');btn.style.opacity = '0';setTimeout(() => btn.style.display = 'none', 500);});
 function playNote(freq, duration, delay = 0) {if(!audioEnabled) return;setTimeout(() => {const osc = audioCtx.createOscillator();const gain = audioCtx.createGain();osc.type = 'triangle';osc.frequency.value = freq;gain.gain.setValueAtTime(0.5, audioCtx.currentTime);gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);osc.connect(gain);gain.connect(audioCtx.destination);osc.start();osc.stop(audioCtx.currentTime + duration);}, delay);}
 function playJapaneseEnterBell() {playNote(523, 0.25, 0);playNote(587, 0.25, 250);playNote(659, 0.25, 500);playNote(784, 0.5, 750);}
@@ -66,7 +77,7 @@ function drawNotebookPaper() {ctx.fillStyle = '#fefcf3'; ctx.fillRect(0, 0, slid
 daftarNama.forEach((nama, index) => {let col = index >= maxPerKolom? 1 : 0;let row = col === 0? index : index - maxPerKolom;let xPos = boxX + 12 + (col * colWidth);let yPos = startY + (row * lineH);ctx.fillStyle = '#000';ctx.beginPath();ctx.arc(xPos + 3, yPos + lineH/2 - 4, 1.5, 0, Math.PI * 2);ctx.fill();drawText(nama, xPos + 10, yPos - 1, 9, 'left', false, '#000', 'top');});
 const infoBoxH = 52;const infoBoxY = boxY + boxH2 + 14;ctx.strokeStyle = '#000';ctx.lineWidth = 1;ctx.strokeRect(boxX, infoBoxY, boxW, infoBoxH);drawText("SEMESTER GANJIL", boxX + boxW/2, infoBoxY + 12, 12, 'center', true, '#000', 'top');drawText("TAHUN AJARAN 2026/2027", boxX + boxW/2, infoBoxY + 32, 11, 'center', false, '#000', 'top');const countdownBoxY = infoBoxY + infoBoxH + 9;const countdownBoxH = 52;ctx.strokeRect(boxX, countdownBoxY, boxW, countdownBoxH);const stopDate = new Date(2026, 10, 30, 8, 0, 0);const isStopped = today >= stopDate;const startSemester = new Date(2026, 6, 13, 7, 0, 0);let diffBerjalan = isStopped? (stopDate - startSemester) : (today - startSemester);let hariBerjalan = 0, jamBerjalan = 0, menitBerjalan = 0, detikBerjalan = 0;if(diffBerjalan > 0){hariBerjalan = Math.floor(diffBerjalan / (1000*60*60*24));jamBerjalan = Math.floor((diffBerjalan % (1000*60*60*24)) / (1000*60*60));menitBerjalan = Math.floor((diffBerjalan % (1000*60*60)) / (1000*60));detikBerjalan = Math.floor((diffBerjalan % (1000*60)) / 1000);}const textBaris1 = `Semester berjalan: ${hariBerjalan} hari ${jamBerjalan} jam ${menitBerjalan} menit ${detikBerjalan} detik.`;drawText(textBaris1, boxX + boxW/2, countdownBoxY + 12, 10, 'center', false, '#000', 'top');let diffMenuju = isStopped? 0 : (stopDate - today); let hariMenuju = 0, jamMenuju = 0, menitMenuju = 0, detikMenuju = 0;if(diffMenuju > 0){hariMenuju = Math.floor(diffMenuju / (1000*60*60*24));jamMenuju = Math.floor((diffMenuju % (1000*60*60*24)) / (1000*60*60));menitMenuju = Math.floor((diffMenuju % (1000*60*60)) / (1000*60));detikMenuju = Math.floor((diffMenuju % (1000*60)) / 1000);}const textBaris2 = `Tinggal ${hariMenuju} hari ${jamMenuju} jam ${menitMenuju} menit ${detikMenuju} detik menuju Asesmen Sumatif Akhir.`;drawText(textBaris2, boxX + boxW/2, countdownBoxY + 32, 10, 'center', false, '#000', 'top');}
 drawNotebookPaper();setInterval(drawNotebookPaper, 1000);setInterval(checkNotification, 1000);
-// ===== FITUR RAHASIA KETUKAN =====
+// ===== FITUR RAHASIA KETUKAN + AUTO ZOOM FIT =====
 let clickCount = 0; let clickTimer = null; let overlayTimer = null;
 const namaWaliKelas = "Guritno Aditya Warman, S.Pd";
 
@@ -131,6 +142,7 @@ function getJamPulang(hari) {
 }
 
 function showPelajaranSaatIni() {
+  zoomFitLayar(); // AUTO ZOOM FIT
   const now = new Date(); const utc = now.getTime() + (now.getTimezoneOffset() * 60000); const today = new Date(utc + (3600000 * 8));
   const hariArr = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]; const namaHari = hariArr[today.getDay()];
   const currentMinutes = today.getHours() * 60 + today.getMinutes();
@@ -140,6 +152,7 @@ function showPelajaranSaatIni() {
   showOverlay(`<div class="overlay-subject">Saat Ini:</div><div class="overlay-teacher">${data.mapel}</div><div class="overlay-teacher">${guruText}</div>`);
 }
 function showPelajaranSelanjutnya() {
+  zoomFitLayar(); // AUTO ZOOM FIT
   const now = new Date(); const utc = now.getTime() + (now.getTimezoneOffset() * 60000); const today = new Date(utc + (3600000 * 8));
   const hariArr = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]; const namaHari = hariArr[today.getDay()];
   const currentMinutes = today.getHours() * 60 + today.getMinutes();
@@ -149,6 +162,7 @@ function showPelajaranSelanjutnya() {
   showOverlay(`<div class="overlay-subject">Selanjutnya:</div><div class="overlay-teacher">${data.mapel}</div><div class="overlay-teacher">${guruText}</div>`);
 }
 function showPelajaranSebelumnya() {
+  zoomFitLayar(); // AUTO ZOOM FIT
   const now = new Date(); const utc = now.getTime() + (now.getTimezoneOffset() * 60000); const today = new Date(utc + (3600000 * 8));
   const hariArr = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]; const namaHari = hariArr[today.getDay()];
   const currentMinutes = today.getHours() * 60 + today.getMinutes();
@@ -158,6 +172,7 @@ function showPelajaranSebelumnya() {
   showOverlay(`<div class="overlay-subject">Sebelumnya:</div><div class="overlay-teacher">${data.mapel}</div><div class="overlay-teacher">${guruText}</div>`);
 }
 function showJamPulang() {
+  zoomFitLayar(); // AUTO ZOOM FIT
   const now = new Date(); const utc = now.getTime() + (now.getTimezoneOffset() * 60000); const today = new Date(utc + (3600000 * 8));
   const hariArr = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]; const namaHari = hariArr[today.getDay()];
   const jamPulang = getJamPulang(namaHari);
@@ -165,6 +180,7 @@ function showJamPulang() {
   showOverlay(`<div class="overlay-subject">Pulang:</div><div class="overlay-teacher">Jam</div><div class="overlay-time">${jamPulang} WITA</div>`);
 }
 function showWaliKelas() {
+  zoomFitLayar(); // AUTO ZOOM FIT
   showOverlay(`<div class="overlay-subject">Wali Kelas:</div><div class="overlay-teacher">${namaWaliKelas}</div><div class="overlay-teacher">XI-Kimia Analisis</div>`);
 }
 </script>
