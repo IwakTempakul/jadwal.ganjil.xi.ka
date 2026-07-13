@@ -16,32 +16,31 @@
     #zoomControls button {width: 45px;height: 45px;border-radius: 50%;border: none;background: #000;color: #fff;font-size: 20px;font-weight: bold;cursor: pointer;box-shadow: 0 4px 10px rgba(0,0,0,0.3);}
     #zoomControls button:active { transform: scale(0.9); }
 
-    /* TAMBAHAN BARU - CSS OVERLAY ANTI ZOOM */
-   .overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0,0,0,0.92);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 99999;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s;
+    /* CSS OVERLAY ANTI ZOOM */
+  .overlay {
+        position: fixed;top: 0;left: 0;right: 0;bottom: 0;width: 100%;height: 100%;
+        background: rgba(0,0,0,0.95);display: flex;justify-content: center;align-items: center;
+        z-index: 999;opacity: 0;pointer-events: none;transition: opacity 0.3s;
     }
-   .overlay.show { opacity: 1; pointer-events: all; }
-   .overlay-content { text-align: center; color: white; padding: 40px; }
-   .overlay-subject { font-size: 5vw; font-weight: bold; margin-bottom: 20px; }
-   .overlay-teacher { font-size: 3vw; }
-   .overlay-time { font-size: 4.5vw; }
+  .overlay.show { opacity: 1; pointer-events: all; }
+  .overlay-content { text-align: center; color: white; padding: 40px; max-width: 90%; }
+  .overlay-subject { font-size: 10vw; font-weight: bold; margin-bottom: 20px; line-height: 1.2; }
+  .overlay-teacher { font-size: 6vw; line-height: 1.3; }
+  .overlay-time { font-size: 9vw; font-weight: bold; }
 </style>
 </head>
 <body>
-<div id="wrapper"><div id="container"><button id="btnAudio"><svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>Aktifkan Bel</button><canvas id="paperBG"></canvas></div></div>
+<div id="wrapper"><div id="container">
+<button id="btnAudio"><svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>Aktifkan Bel</button>
+<canvas id="paperBG"></canvas>
+</div></div>
+
+<!-- HTML OVERLAY + ZOOM HARUS ADA -->
+<div class="overlay" id="overlay" onclick="hideOverlay()">
+  <div class="overlay-content" id="overlayContent"></div>
+</div>
 <div id="zoomControls"><button id="zoomOut">-</button><button id="zoomReset">1:1</button><button id="zoomIn">+</button></div>
+
 <script>
 const canvas = document.getElementById('paperBG');const wrapper = document.getElementById('wrapper');const dpr = window.devicePixelRatio || 1;const scaleFactor = 1.5;const slideWidth = 768;const slideHeight = 1366;
 canvas.width = slideWidth * scaleFactor * dpr;canvas.height = slideHeight * scaleFactor * dpr;canvas.style.width = slideWidth + "px";canvas.style.height = slideHeight + "px";const ctx = canvas.getContext('2d');ctx.scale(scaleFactor * dpr, scaleFactor * dpr);
@@ -64,20 +63,16 @@ function checkNotification() {if(!audioEnabled) return;const now = new Date();co
 function drawText(text, x, y, fontSize, align = 'center', bold = false, color = '#000', baseline = 'top'){ctx.font = `${bold? 'bold' : 'normal'} ${fontSize}px "Segoe UI", Arial`;ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = baseline; ctx.fillText(text, x, y);}
 function drawTable(hari, startX, startY, tableWidth){const jadwalAsli = dataJadwal[hari];const jadwal = jadwalAsli.filter(row => row[1]!== "Pulang");const rowHeight = 22;const colWidths = [75, tableWidth - 75 - 140, 140];drawText(hari, startX, startY - 22, 14, 'left', true, '#000', 'top');ctx.fillStyle = '#d9d9d9'; ctx.fillRect(startX, startY, tableWidth, rowHeight);let hasPJOK = false;let hasKIK = false;let hasTitrimetri = false;let hasMapelPilihan = false;for(let i = 0; i < jadwal.length; i++){let y = startY + i * rowHeight; let row = jadwal[i]; let x = startX;if(row[1] === "PJOK") hasPJOK = true;if(row[1] === "KIK") hasKIK = true;if(row[1] === "Titrimetri dan Gravimetri") hasTitrimetri = true;if(row[1] === "Mapel Pilihan") hasMapelPilihan = true;if(row[0].includes("Istirahat")){ ctx.fillStyle = '#000'; ctx.fillRect(startX, y, tableWidth, rowHeight); ctx.fillStyle = '#fff'; } else { ctx.fillStyle = '#000'; }ctx.strokeStyle = '#444'; ctx.lineWidth = 1; ctx.strokeRect(startX, y, tableWidth, rowHeight);ctx.beginPath(); ctx.moveTo(x + colWidths[0], y); ctx.lineTo(x + colWidths[0], y + rowHeight);ctx.moveTo(x + colWidths[0] + colWidths[1], y); ctx.lineTo(x + colWidths[0] + colWidths[1], y + rowHeight); ctx.stroke();let isHeader = i === 0; let fontSize = isHeader? 11 : 10; let bold = isHeader;let yCenter = y + rowHeight / 2;drawText(row[0], x + colWidths[0]/2, yCenter, fontSize, 'center', bold, '#000', 'middle');drawText(row[1], x + colWidths[0] + 5, yCenter, fontSize, 'left', bold, '#000', 'middle');drawText(row[2], x + colWidths[0] + colWidths[1] + 5, yCenter, fontSize, 'left', bold, '#000', 'middle');}let noteY = startY + jadwal.length * rowHeight + 5;if(hasPJOK){drawText("PJOK = Pendidikan Jasmani, Olahraga, dan Kesehatan", startX, noteY, 9, 'left', false, '#333', 'top');noteY += 14;}if(hasKIK){drawText("KIK = Kreativitas, Inovasi, dan Kewirausahaan", startX, noteY, 9, 'left', false, '#333', 'top');noteY += 14;}if(hasTitrimetri){drawText("Titrimetri dan Gravimetri = Analisis Titrimetri dan Gravimetri", startX, noteY, 9, 'left', false, '#333', 'top');noteY += 14;}if(hasMapelPilihan){drawText("Mapel Pilihan = Analisis Batu Bara", startX, noteY, 9, 'left', false, '#333', 'top');}return noteY;}
 function drawNotebookPaper() {ctx.fillStyle = '#fefcf3'; ctx.fillRect(0, 0, slideWidth, slideHeight);ctx.strokeStyle = '#cce0ff'; ctx.lineWidth = 1;for (let y = lineHeight; y < slideHeight; y += lineHeight) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(slideWidth, y); ctx.stroke(); }const now = new Date(); const utc = now.getTime() + (now.getTimezoneOffset() * 60000); const today = new Date(utc + (3600000 * 8));const hariArr = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];const bulanArr = ["JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"];const namaHari = hariArr[today.getDay()]; const tanggal = today.getDate(); const namaBulan = bulanArr[today.getMonth()];const currentMinutes = today.getHours() * 60 + today.getMinutes();const mapelSekarang = getMapelAtTime(namaHari, currentMinutes) || "Di luar jam pelajaran";const boxH = 100; const calW = 120; const calX = slideWidth/2 - calW/2 - 285; const calY = 20;ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.strokeRect(calX, calY, calW, boxH); ctx.fillStyle = '#000'; ctx.fillRect(calX, calY, calW, 25);drawText(namaBulan, calX + calW/2, calY + 4, 14, 'center', true, '#fff', 'top');ctx.setLineDash([2, 2]); ctx.beginPath(); ctx.moveTo(calX + 5, calY + 25); ctx.lineTo(calX + calW - 5, calY + 25); ctx.stroke(); ctx.setLineDash([]);drawText(tanggal, calX + calW/2, calY + 38, 40, 'center', true, '#000', 'top');drawText(namaHari.toUpperCase(), calX + calW/2, calY + 82, 14, 'center', true, '#000', 'top');const clockW = 175; const clockX = calX + calW + 25; const clockY = calY;ctx.strokeRect(clockX, clockY, clockW, boxH); ctx.fillRect(clockX, clockY, clockW, 25);drawText("WAKTU", clockX + clockW/2, clockY + 4, 14, 'center', true, '#fff', 'top');const hours = String(today.getHours()).padStart(2, '0'); const minutes = String(today.getMinutes()).padStart(2, '0'); const seconds = String(today.getSeconds()).padStart(2, '0');drawText(`${hours}:${minutes}:${seconds}`, clockX + clockW/2, clockY + 38, 40, 'center', true, '#000', 'top');drawText("WITA", clockX + clockW/2, clockY + 82, 14, 'center', true, '#000', 'top');const mapelW = 345; const mapelX = clockX + clockW + 25; const mapelY = calY;ctx.strokeRect(mapelX, mapelY, mapelW, boxH); ctx.fillRect(mapelX, mapelY, mapelW, 25);drawText("SAAT INI", mapelX + mapelW/2, mapelY + 4, 14, 'center', true, '#fff', 'top');drawText(mapelSekarang, mapelX + mapelW/2, mapelY + 50, 22, 'center', true, '#000', 'top');const offsetY = 140;drawText("JADWAL PELAJARAN", slideWidth/2, 20 + offsetY, 26, 'center', true, '#000', 'top');drawText("Kelas XI-Kimia Analisis", slideWidth/2, 55 + offsetY, 16, 'center', false, '#000', 'top');drawText("Wali Kelas: Guritno Aditya Warman, S.Pd", slideWidth - 50, 80 + offsetY, 12, 'right', false, '#000', 'top');const tableWidth = 350; const gap = 25;drawTable("Senin", 30, 135 + gap + offsetY, tableWidth);drawTable("Selasa", 30, 455 + gap + offsetY, tableWidth);drawTable("Rabu", 30, 825 + gap + offsetY, tableWidth);drawTable("Kamis", 390, 135 + gap + offsetY, tableWidth);drawTable("Jumat", 390, 495 + gap + offsetY, tableWidth);const jumatY = 495 + gap + offsetY;const jumatH = 9 * 22;const rabuY = 825 + gap + offsetY;const rabuH = 15 * 22;const boxX = 390;const boxY = jumatY + jumatH + 20;const boxW = tableWidth + 18;const boxH2 = ((rabuY + rabuH) - boxY) - 150;ctx.strokeStyle = '#444';ctx.lineWidth = 1;ctx.strokeRect(boxX, boxY, boxW, boxH2);drawText("XI-KIMIA ANALISIS", boxX + boxW/2, boxY + 8, 12, 'center', true, '#000', 'top');drawText("SMK NEGERI 6 SAMARINDA", boxX + boxW/2, boxY + 24, 10, 'center', false, '#000', 'top');const colWidth = boxW / 2;const startY = boxY + 52;const lineH = 14;const totalNama = daftarNama.length;const maxPerKolom = Math.ceil(totalNama / 2);
-daftarNama.forEach((nama, index) => {let col = index >= maxPerKolom? 1 : 0;let row = col === 0? index : index - maxPerKolom;let xPos = boxX + 12 + (col * colWidth);let yPos = startY + (row * lineH);ctx.fillStyle = '#000';ctx.beginPath();ctx.arc(xPos + 3, yPos + lineH/2 - 4, 1.5, 0, Math.PI * 2);ctx.fill();drawText(nama, xPos + 10, yPos - 1, 9, 'left', false, '#000', 'top');}); // -1 disini
+daftarNama.forEach((nama, index) => {let col = index >= maxPerKolom? 1 : 0;let row = col === 0? index : index - maxPerKolom;let xPos = boxX + 12 + (col * colWidth);let yPos = startY + (row * lineH);ctx.fillStyle = '#000';ctx.beginPath();ctx.arc(xPos + 3, yPos + lineH/2 - 4, 1.5, 0, Math.PI * 2);ctx.fill();drawText(nama, xPos + 10, yPos - 1, 9, 'left', false, '#000', 'top');});
 const infoBoxH = 52;const infoBoxY = boxY + boxH2 + 14;ctx.strokeStyle = '#000';ctx.lineWidth = 1;ctx.strokeRect(boxX, infoBoxY, boxW, infoBoxH);drawText("SEMESTER GANJIL", boxX + boxW/2, infoBoxY + 12, 12, 'center', true, '#000', 'top');drawText("TAHUN AJARAN 2026/2027", boxX + boxW/2, infoBoxY + 32, 11, 'center', false, '#000', 'top');const countdownBoxY = infoBoxY + infoBoxH + 9;const countdownBoxH = 52;ctx.strokeRect(boxX, countdownBoxY, boxW, countdownBoxH);const stopDate = new Date(2026, 10, 30, 8, 0, 0);const isStopped = today >= stopDate;const startSemester = new Date(2026, 6, 13, 7, 0, 0);let diffBerjalan = isStopped? (stopDate - startSemester) : (today - startSemester);let hariBerjalan = 0, jamBerjalan = 0, menitBerjalan = 0, detikBerjalan = 0;if(diffBerjalan > 0){hariBerjalan = Math.floor(diffBerjalan / (1000*60*60*24));jamBerjalan = Math.floor((diffBerjalan % (1000*60*60*24)) / (1000*60*60));menitBerjalan = Math.floor((diffBerjalan % (1000*60*60)) / (1000*60));detikBerjalan = Math.floor((diffBerjalan % (1000*60)) / 1000);}const textBaris1 = `Semester berjalan: ${hariBerjalan} hari ${jamBerjalan} jam ${menitBerjalan} menit ${detikBerjalan} detik.`;drawText(textBaris1, boxX + boxW/2, countdownBoxY + 12, 10, 'center', false, '#000', 'top');let diffMenuju = isStopped? 0 : (stopDate - today); let hariMenuju = 0, jamMenuju = 0, menitMenuju = 0, detikMenuju = 0;if(diffMenuju > 0){hariMenuju = Math.floor(diffMenuju / (1000*60*60*24));jamMenuju = Math.floor((diffMenuju % (1000*60*60*24)) / (1000*60*60));menitMenuju = Math.floor((diffMenuju % (1000*60*60)) / (1000*60));detikMenuju = Math.floor((diffMenuju % (1000*60)) / 1000);}const textBaris2 = `Tinggal ${hariMenuju} hari ${jamMenuju} jam ${menitMenuju} menit ${detikMenuju} detik menuju Asesmen Sumatif Akhir.`;drawText(textBaris2, boxX + boxW/2, countdownBoxY + 32, 10, 'center', false, '#000', 'top');}
 drawNotebookPaper();setInterval(drawNotebookPaper, 1000);setInterval(checkNotification, 1000);
-
-drawNotebookPaper();setInterval(drawNotebookPaper, 1000);setInterval(checkNotification, 1000);
-
-// ===== FITUR RAHASIA KETUKAN - BARU =====
+// ===== FITUR RAHASIA KETUKAN =====
 let clickCount = 0; let clickTimer = null; let overlayTimer = null;
 const namaWaliKelas = "Guritno Aditya Warman, S.Pd";
 
 document.body.addEventListener('click', (e) => {
   if(e.target.closest('#zoomControls') || e.target.closest('#btnAudio')) return;
-  clickCount++;
-  clearTimeout(clickTimer);
+  clickCount++;clearTimeout(clickTimer);
   clickTimer = setTimeout(() => {
     if(clickCount === 2) showPelajaranSaatIni();
     else if(clickCount === 3) showPelajaranSelanjutnya();
@@ -173,11 +168,6 @@ function showWaliKelas() {
   showOverlay(`<div class="overlay-subject">Wali Kelas:</div><div class="overlay-teacher">${namaWaliKelas}</div><div class="overlay-teacher">XI-Kimia Analisis</div>`);
 }
 </script>
-
-<!-- TAMBAHAN BARU - HTML OVERLAY -->
-<div class="overlay" id="overlay" onclick="hideOverlay()">
-  <div class="overlay-content" id="overlayContent"></div>
-</div>
 
 </body>
 </html>
