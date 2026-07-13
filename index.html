@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Jadwal XI-Kimia Analisis</title>
 <style>
-    body {margin: 0;background: #222;display: flex;justify-content: flex-start;align-items: flex-start;min-height: 100vh;overflow: auto;padding: 20px;box-sizing: border-box;touch-action: manipulation;}
+    body {margin: 0;background: #222;display: flex;justify-content: flex-start;align-items: flex-start;min-height: 100vh;overflow: auto;padding: 20px;box-sizing: border-box;}
     #wrapper {position: relative;transform-origin: top left;transition: transform 0.3s ease;}
     #container {width: 768px;height: 1366px;position: relative;background: #fff;box-shadow: 0 10px 30px rgba(0,0,0,0.5);}
     canvas { width: 100%; height: 100%; display: block; }
@@ -77,14 +77,20 @@ const infoBoxH = 52;const infoBoxY = boxY + boxH2 + 14;ctx.strokeStyle = '#000';
 drawNotebookPaper();setInterval(drawNotebookPaper, 1000);setInterval(checkNotification, 1000);
 // ===== BAGIAN 2: FITUR KETUKAN + OVERLAY =====
 let clickCount = 0; let clickTimer = null; let overlayTimer = null; let lastTap = 0;
+let touchStartX = 0; let touchStartY = 0; // buat deteksi geser
 const namaWaliKelas = "Guritno Aditya Warman, S.Pd";
 
 function handleTap(e) {
   if(e.target.closest('#zoomControls') || e.target.closest('#btnAudio') || e.target.closest('#overlay')) return;
-  e.preventDefault(); // MATIIN ZOOM BAWAAN HP
 
   const currentTime = new Date().getTime();
   const tapLength = currentTime - lastTap;
+
+  // cuma jalanin kalau tap beneran, bukan geser
+  const touchEnd = e.changedTouches? e.changedTouches[0] : e;
+  const deltaX = Math.abs(touchEnd.clientX - touchStartX);
+  const deltaY = Math.abs(touchEnd.clientY - touchStartY);
+  if(deltaX > 10 || deltaY > 10) return; // ini geser, bukan tap
 
   if(tapLength < 500 && tapLength > 0) { clickCount++; } else { clickCount = 1; }
   lastTap = currentTime;
@@ -99,7 +105,14 @@ function handleTap(e) {
     clickCount = 0;
   }, 900);
 }
-document.body.addEventListener('touchstart', handleTap, {passive: false});
+
+// simpan posisi awal sentuh
+document.body.addEventListener('touchstart', (e) => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, {passive: true});
+
+document.body.addEventListener('touchend', handleTap, {passive: true});
 document.body.addEventListener('click', handleTap); // buat laptop
 
 function showOverlay(html) {
