@@ -2,11 +2,11 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Jadwal XI-Kimia Analisis</title>
 <style>
-    body {margin: 0;background: #222;display: flex;justify-content: flex-start;align-items: flex-start;min-height: 100vh;overflow: auto;padding: 20px;box-sizing: border-box;}
-    #wrapper {position: relative;transform-origin: top left;transition: transform 0.3s ease;} /* ditambahin transisi biar smooth */
+    body {margin: 0;background: #222;display: flex;justify-content: flex-start;align-items: flex-start;min-height: 100vh;overflow: auto;padding: 20px;box-sizing: border-box;touch-action: manipulation;}
+    #wrapper {position: relative;transform-origin: top left;transition: transform 0.3s ease;}
     #container {width: 768px;height: 1366px;position: relative;background: #fff;box-shadow: 0 10px 30px rgba(0,0,0,0.5);}
     canvas { width: 100%; height: 100%; display: block; }
     #btnAudio {position: absolute;top: 150px;right: 43px;z-index: 999;padding: 10px 16px;background: #000;color: #fff;border: 2px solid #000;border-radius: 8px;font-size: 13px;font-weight: bold;cursor: pointer;box-shadow: none;transition: opacity 0.5s, background 0.2s, color 0.2s;display: flex;align-items: center;gap: 6px;}
@@ -16,7 +16,6 @@
     #zoomControls button {width: 45px;height: 45px;border-radius: 50%;border: none;background: #000;color: #fff;font-size: 20px;font-weight: bold;cursor: pointer;box-shadow: 0 4px 10px rgba(0,0,0,0.3);}
     #zoomControls button:active { transform: scale(0.9); }
 
-    /* CSS OVERLAY ANTI ZOOM */
   .overlay {
         position: fixed;top: 0;left: 0;right: 0;bottom: 0;width: 100%;height: 100%;
         background: rgba(0,0,0,0.95);display: flex;justify-content: center;align-items: center;
@@ -35,7 +34,6 @@
 <canvas id="paperBG"></canvas>
 </div></div>
 
-<!-- HTML OVERLAY + ZOOM -->
 <div class="overlay" id="overlay" onclick="hideOverlay()">
   <div class="overlay-content" id="overlayContent"></div>
 </div>
@@ -51,14 +49,14 @@ document.getElementById('zoomOut').onclick = () => { currentScale = Math.max(cur
 document.getElementById('zoomReset').onclick = () => { currentScale = 1; applyZoom(); }
 window.addEventListener('wheel', (e) => {if(e.ctrlKey) {e.preventDefault();if(e.deltaY < 0) currentScale = Math.min(currentScale + 0.1, 3);else currentScale = Math.max(currentScale - 0.1, 0.2);applyZoom();}}, {passive: false});
 
-// FUNGSI BARU: ZOOM FIT LAYAR
+// FUNGSI ZOOM FIT BUAT HP
 function zoomFitLayar() {
-  const containerWidth = 768; // lebar canvas lu
-  const screenWidth = window.innerWidth - 40; // -40 biar ada padding
-  currentScale = screenWidth / containerWidth;
-  if(currentScale > 1) currentScale = 1; // jangan zoom in
+  const containerWidth = 768;
+  const screenWidth = window.visualViewport? window.visualViewport.width : window.innerWidth;
+  currentScale = (screenWidth - 20) / containerWidth;
+  if(currentScale > 1) currentScale = 1;
   applyZoom();
-  window.scrollTo(0, 0); // scroll ke atas
+  setTimeout(() => { window.scrollTo({top: 0, behavior: 'smooth'}); }, 50);
 }
 
 let audioCtx;let audioEnabled = false;document.getElementById('btnAudio').addEventListener('click', () => {audioCtx = new (window.AudioContext || window.webkitAudioContext)();audioEnabled = true;const btn = document.getElementById('btnAudio');btn.style.opacity = '0';setTimeout(() => btn.style.display = 'none', 500);});
@@ -77,13 +75,21 @@ function drawNotebookPaper() {ctx.fillStyle = '#fefcf3'; ctx.fillRect(0, 0, slid
 daftarNama.forEach((nama, index) => {let col = index >= maxPerKolom? 1 : 0;let row = col === 0? index : index - maxPerKolom;let xPos = boxX + 12 + (col * colWidth);let yPos = startY + (row * lineH);ctx.fillStyle = '#000';ctx.beginPath();ctx.arc(xPos + 3, yPos + lineH/2 - 4, 1.5, 0, Math.PI * 2);ctx.fill();drawText(nama, xPos + 10, yPos - 1, 9, 'left', false, '#000', 'top');});
 const infoBoxH = 52;const infoBoxY = boxY + boxH2 + 14;ctx.strokeStyle = '#000';ctx.lineWidth = 1;ctx.strokeRect(boxX, infoBoxY, boxW, infoBoxH);drawText("SEMESTER GANJIL", boxX + boxW/2, infoBoxY + 12, 12, 'center', true, '#000', 'top');drawText("TAHUN AJARAN 2026/2027", boxX + boxW/2, infoBoxY + 32, 11, 'center', false, '#000', 'top');const countdownBoxY = infoBoxY + infoBoxH + 9;const countdownBoxH = 52;ctx.strokeRect(boxX, countdownBoxY, boxW, countdownBoxH);const stopDate = new Date(2026, 10, 30, 8, 0, 0);const isStopped = today >= stopDate;const startSemester = new Date(2026, 6, 13, 7, 0, 0);let diffBerjalan = isStopped? (stopDate - startSemester) : (today - startSemester);let hariBerjalan = 0, jamBerjalan = 0, menitBerjalan = 0, detikBerjalan = 0;if(diffBerjalan > 0){hariBerjalan = Math.floor(diffBerjalan / (1000*60*60*24));jamBerjalan = Math.floor((diffBerjalan % (1000*60*60*24)) / (1000*60*60));menitBerjalan = Math.floor((diffBerjalan % (1000*60*60)) / (1000*60));detikBerjalan = Math.floor((diffBerjalan % (1000*60)) / 1000);}const textBaris1 = `Semester berjalan: ${hariBerjalan} hari ${jamBerjalan} jam ${menitBerjalan} menit ${detikBerjalan} detik.`;drawText(textBaris1, boxX + boxW/2, countdownBoxY + 12, 10, 'center', false, '#000', 'top');let diffMenuju = isStopped? 0 : (stopDate - today); let hariMenuju = 0, jamMenuju = 0, menitMenuju = 0, detikMenuju = 0;if(diffMenuju > 0){hariMenuju = Math.floor(diffMenuju / (1000*60*60*24));jamMenuju = Math.floor((diffMenuju % (1000*60*60*24)) / (1000*60*60));menitMenuju = Math.floor((diffMenuju % (1000*60*60)) / (1000*60));detikMenuju = Math.floor((diffMenuju % (1000*60)) / 1000);}const textBaris2 = `Tinggal ${hariMenuju} hari ${jamMenuju} jam ${menitMenuju} menit ${detikMenuju} detik menuju Asesmen Sumatif Akhir.`;drawText(textBaris2, boxX + boxW/2, countdownBoxY + 32, 10, 'center', false, '#000', 'top');}
 drawNotebookPaper();setInterval(drawNotebookPaper, 1000);setInterval(checkNotification, 1000);
-// ===== FITUR RAHASIA KETUKAN + AUTO ZOOM FIT =====
-let clickCount = 0; let clickTimer = null; let overlayTimer = null;
+// ===== FITUR RAHASIA KETUKAN + AUTO ZOOM FIT + FIX HP =====
+let clickCount = 0; let clickTimer = null; let overlayTimer = null; let lastTap = 0;
 const namaWaliKelas = "Guritno Aditya Warman, S.Pd";
 
-document.body.addEventListener('click', (e) => {
-  if(e.target.closest('#zoomControls') || e.target.closest('#btnAudio')) return;
-  clickCount++;clearTimeout(clickTimer);
+function handleTap(e) {
+  if(e.target.closest('#zoomControls') || e.target.closest('#btnAudio') || e.target.closest('#overlay')) return;
+  e.preventDefault(); // MATIIN ZOOM BAWAAN HP
+
+  const currentTime = new Date().getTime();
+  const tapLength = currentTime - lastTap;
+
+  if(tapLength < 500 && tapLength > 0) { clickCount++; } else { clickCount = 1; }
+  lastTap = currentTime;
+
+  clearTimeout(clickTimer);
   clickTimer = setTimeout(() => {
     if(clickCount === 2) showPelajaranSaatIni();
     else if(clickCount === 3) showPelajaranSelanjutnya();
@@ -92,7 +98,9 @@ document.body.addEventListener('click', (e) => {
     else if(clickCount === 7) showWaliKelas();
     clickCount = 0;
   }, 900);
-});
+}
+document.body.addEventListener('touchstart', handleTap, {passive: false});
+document.body.addEventListener('click', handleTap); // buat laptop
 
 function showOverlay(html) {
   document.getElementById('overlayContent').innerHTML = html;
