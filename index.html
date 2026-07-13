@@ -16,17 +16,17 @@
     #zoomControls button {width: 45px;height: 45px;border-radius: 50%;border: none;background: #000;color: #fff;font-size: 20px;font-weight: bold;cursor: pointer;box-shadow: 0 4px 10px rgba(0,0,0,0.3);}
     #zoomControls button:active { transform: scale(0.9); }
 
-    /* CSS OVERLAY ANTI ZOOM */
-  .overlay {
-        position: fixed;top: 0;left: 0;right: 0;bottom: 0;width: 100%;height: 100%;
-        background: rgba(0,0,0,0.95);display: flex;justify-content: center;align-items: center;
-        z-index: 999;opacity: 0;pointer-events: none;transition: opacity 0.3s;
+.notif-popup {
+        position: fixed;top: 20px;left: 20px;width: 280px;background: rgba(0,0,0,0.9);
+        color: white;border-radius: 12px;padding: 14px 16px;z-index: 999;
+        opacity: 0;pointer-events: none;transition: opacity 0.3s, transform 0.3s;
+        transform: translateX(-100%);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.4);
     }
-  .overlay.show { opacity: 1; pointer-events: all; }
-  .overlay-content { text-align: center; color: white; padding: 40px; max-width: 90%; }
-  .overlay-subject { font-size: 10vw; font-weight: bold; margin-bottom: 20px; line-height: 1.2; }
-  .overlay-teacher { font-size: 6vw; line-height: 1.3; }
-  .overlay-time { font-size: 9vw; font-weight: bold; }
+.notif-popup.show { opacity: 1; pointer-events: all; transform: translateX(0); }
+.notif-line1 { font-size: 12px; font-weight: normal; margin-bottom: 4px; opacity: 0.8; }
+.notif-line2 { font-size: 18px; font-weight: bold; margin-bottom: 3px; line-height: 1.3; }
+.notif-line3 { font-size: 13px; font-weight: normal; opacity: 0.9; line-height: 1.3; }
 </style>
 </head>
 <body>
@@ -35,9 +35,10 @@
 <canvas id="paperBG"></canvas>
 </div></div>
 
-<!-- HTML OVERLAY + ZOOM HARUS ADA -->
-<div class="overlay" id="overlay" onclick="hideOverlay()">
-  <div class="overlay-content" id="overlayContent"></div>
+<div class="notif-popup" id="notifPopup">
+  <div class="notif-line1" id="notifLine1"></div>
+  <div class="notif-line2" id="notifLine2"></div>
+  <div class="notif-line3" id="notifLine3"></div>
 </div>
 <div id="zoomControls"><button id="zoomOut">-</button><button id="zoomReset">1:1</button><button id="zoomIn">+</button></div>
 
@@ -67,9 +68,62 @@ daftarNama.forEach((nama, index) => {let col = index >= maxPerKolom? 1 : 0;let r
 const infoBoxH = 52;const infoBoxY = boxY + boxH2 + 14;ctx.strokeStyle = '#000';ctx.lineWidth = 1;ctx.strokeRect(boxX, infoBoxY, boxW, infoBoxH);drawText("SEMESTER GANJIL", boxX + boxW/2, infoBoxY + 12, 12, 'center', true, '#000', 'top');drawText("TAHUN AJARAN 2026/2027", boxX + boxW/2, infoBoxY + 32, 11, 'center', false, '#000', 'top');const countdownBoxY = infoBoxY + infoBoxH + 9;const countdownBoxH = 52;ctx.strokeRect(boxX, countdownBoxY, boxW, countdownBoxH);const stopDate = new Date(2026, 10, 30, 8, 0, 0);const isStopped = today >= stopDate;const startSemester = new Date(2026, 6, 13, 7, 0, 0);let diffBerjalan = isStopped? (stopDate - startSemester) : (today - startSemester);let hariBerjalan = 0, jamBerjalan = 0, menitBerjalan = 0, detikBerjalan = 0;if(diffBerjalan > 0){hariBerjalan = Math.floor(diffBerjalan / (1000*60*60*24));jamBerjalan = Math.floor((diffBerjalan % (1000*60*60*24)) / (1000*60*60));menitBerjalan = Math.floor((diffBerjalan % (1000*60*60)) / (1000*60));detikBerjalan = Math.floor((diffBerjalan % (1000*60)) / 1000);}const textBaris1 = `Semester berjalan: ${hariBerjalan} hari ${jamBerjalan} jam ${menitBerjalan} menit ${detikBerjalan} detik.`;drawText(textBaris1, boxX + boxW/2, countdownBoxY + 12, 10, 'center', false, '#000', 'top');let diffMenuju = isStopped? 0 : (stopDate - today); let hariMenuju = 0, jamMenuju = 0, menitMenuju = 0, detikMenuju = 0;if(diffMenuju > 0){hariMenuju = Math.floor(diffMenuju / (1000*60*60*24));jamMenuju = Math.floor((diffMenuju % (1000*60*60*24)) / (1000*60*60));menitMenuju = Math.floor((diffMenuju % (1000*60*60)) / (1000*60));detikMenuju = Math.floor((diffMenuju % (1000*60)) / 1000);}const textBaris2 = `Tinggal ${hariMenuju} hari ${jamMenuju} jam ${menitMenuju} menit ${detikMenuju} detik menuju Asesmen Sumatif Akhir.`;drawText(textBaris2, boxX + boxW/2, countdownBoxY + 32, 10, 'center', false, '#000', 'top');}
 drawNotebookPaper();setInterval(drawNotebookPaper, 1000);setInterval(checkNotification, 1000);
 // ===== FITUR RAHASIA KETUKAN =====
-let clickCount = 0; let clickTimer = null; let overlayTimer = null;
+let clickCount = 0; let clickTimer = null; let notifTimer = null;
 const namaWaliKelas = "Guritno Aditya Warman, S.Pd";
 
+function showNotif3Baris(line1, line2, line3) {
+  document.getElementById('notifLine1').innerText = line1;
+  document.getElementById('notifLine2').innerText = line2;
+  document.getElementById('notifLine3').innerText = line3;
+  document.getElementById('notifPopup').classList.add('show');
+  clearTimeout(notifTimer);
+  notifTimer = setTimeout(() => {
+    document.getElementById('notifPopup').classList.remove('show');
+  }, 7000);
+}
+
+function getMapelDetailAtTime(hari, minutes) {
+  const jadwal = dataJadwal[hari]; if(!jadwal) return null;
+  for(let i = 1; i < jadwal.length; i++) {
+    const row = jadwal[i]; const [start, end] = row[0].split(' - ');
+    const startMin = timeToMinutes(start); const endMin = timeToMinutes(end);
+    if(minutes >= startMin && minutes < endMin) return {mapel: row[1], guru: row[2]};
+  }
+  return null;
+}
+
+// FIX: CARI SAMPAI BEDA DARI MAPEL SEKARANG
+function getMapelSelanjutnyaUnik(hari, minutes) {
+  const jadwal = dataJadwal[hari]; if(!jadwal) return null;
+  const mapelSekarang = getMapelAtTime(hari, minutes);
+  for(let i = 1; i < jadwal.length; i++) {
+    const row = jadwal[i]; const [start] = row[0].split(' - ');
+    if(timeToMinutes(start) > minutes) {
+      if(row[1]!== mapelSekarang) return {mapel: row[1], guru: row[2]};
+    }
+  }
+  return null;
+}
+function getMapelSebelumnyaUnik(hari, minutes) {
+  const jadwal = dataJadwal[hari]; if(!jadwal) return null;
+  const mapelSekarang = getMapelAtTime(hari, minutes);
+  for(let i = jadwal.length-1; i>=1; i--) {
+    const row = jadwal[i]; const [start] = row[0].split(' - ');
+    if(timeToMinutes(start) < minutes) {
+      if(row[1]!== mapelSekarang) return {mapel: row[1], guru: row[2]};
+    }
+  }
+  return null;
+}
+function getJamPulang(hari) {
+  const jadwal = dataJadwal[hari]; if(!jadwal) return "-";
+  for(let i = jadwal.length-1; i>=1; i--) {
+    if(jadwal[i][1].toLowerCase().includes("pulang")) {
+      return jadwal[i][0].split(' - ')[0];
+    }
+  }
+  return "-";
+}
 document.body.addEventListener('click', (e) => {
   if(e.target.closest('#zoomControls') || e.target.closest('#btnAudio')) return;
   clickCount++;clearTimeout(clickTimer);
@@ -83,89 +137,51 @@ document.body.addEventListener('click', (e) => {
   }, 900);
 });
 
-function showOverlay(html) {
-  document.getElementById('overlayContent').innerHTML = html;
-  document.getElementById('overlay').classList.add('show');
-  clearTimeout(overlayTimer);
-  overlayTimer = setTimeout(hideOverlay, 7000);
-}
-function hideOverlay() {
-  document.getElementById('overlay').classList.remove('show');
-  clearTimeout(overlayTimer);
-}
-
-function getMapelDetailAtTime(hari, minutes) {
-  const jadwal = dataJadwal[hari]; if(!jadwal) return null;
-  for(let i = 1; i < jadwal.length; i++) {
-    const row = jadwal[i]; const [start, end] = row[0].split(' - ');
-    const startMin = timeToMinutes(start); const endMin = timeToMinutes(end);
-    if(minutes >= startMin && minutes < endMin) return {mapel: row[1], guru: row[2]};
-  }
-  return null;
-}
-function getMapelSelanjutnya(hari, minutes) {
-  const jadwal = dataJadwal[hari]; if(!jadwal) return null;
-  for(let i = 1; i < jadwal.length; i++) {
-    const row = jadwal[i]; const [start] = row[0].split(' - ');
-    if(timeToMinutes(start) > minutes) return {mapel: row[1], guru: row[2]};
-  }
-  return null;
-}
-function getMapelSebelumnya(hari, minutes) {
-  const jadwal = dataJadwal[hari]; if(!jadwal) return null;
-  let mapelTerakhir = null;
-  for(let i = 1; i < jadwal.length; i++) {
-    const row = jadwal[i]; const [start] = row[0].split(' - ');
-    if(timeToMinutes(start) < minutes) mapelTerakhir = {mapel: row[1], guru: row[2]}; else break;
-  }
-  return mapelTerakhir;
-}
-function getJamPulang(hari) {
-  const jadwal = dataJadwal[hari]; if(!jadwal) return "-";
-  for(let i = jadwal.length-1; i>=1; i--) {
-    if(jadwal[i][1].toLowerCase().includes("pulang")) {
-      return jadwal[i][0].split(' - ')[0];
-    }
-  }
-  return "-";
-}
-
 function showPelajaranSaatIni() {
   const now = new Date(); const utc = now.getTime() + (now.getTimezoneOffset() * 60000); const today = new Date(utc + (3600000 * 8));
   const hariArr = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]; const namaHari = hariArr[today.getDay()];
   const currentMinutes = today.getHours() * 60 + today.getMinutes();
   const data = getMapelDetailAtTime(namaHari, currentMinutes);
-  if(!data) {showOverlay(`<div class="overlay-subject">Saat Ini:</div><div class="overlay-teacher">Di luar jam pelajaran</div>`); return;}
-  const guruText = data.guru? `(${data.guru})` : "";
-  showOverlay(`<div class="overlay-subject">Saat Ini:</div><div class="overlay-teacher">${data.mapel}</div><div class="overlay-teacher">${guruText}</div>`);
+  if(!data) {showNotif3Baris("Saat ini:", "Di luar jam pelajaran", ""); return;}
+  if(data.mapel === "Istirahat" || data.mapel === "Pulang") {
+    showNotif3Baris("Saat ini:", data.mapel, "");
+  } else {
+    showNotif3Baris("Saat ini:", data.mapel, data.guru);
+  }
 }
 function showPelajaranSelanjutnya() {
   const now = new Date(); const utc = now.getTime() + (now.getTimezoneOffset() * 60000); const today = new Date(utc + (3600000 * 8));
   const hariArr = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]; const namaHari = hariArr[today.getDay()];
   const currentMinutes = today.getHours() * 60 + today.getMinutes();
-  const data = getMapelSelanjutnya(namaHari, currentMinutes);
-  if(!data) {showOverlay(`<div class="overlay-subject">Selanjutnya:</div><div class="overlay-teacher">Di luar jam pelajaran</div>`); return;}
-  const guruText = data.guru? `(${data.guru})` : "";
-  showOverlay(`<div class="overlay-subject">Selanjutnya:</div><div class="overlay-teacher">${data.mapel}</div><div class="overlay-teacher">${guruText}</div>`);
+  const data = getMapelSelanjutnyaUnik(namaHari, currentMinutes);
+  if(!data) {showNotif3Baris("Selanjutnya:", "Di luar jam pelajaran", ""); return;}
+  if(data.mapel === "Istirahat" || data.mapel === "Pulang") {
+    showNotif3Baris("Selanjutnya:", data.mapel, "");
+  } else {
+    showNotif3Baris("Selanjutnya:", data.mapel, data.guru);
+  }
 }
 function showPelajaranSebelumnya() {
   const now = new Date(); const utc = now.getTime() + (now.getTimezoneOffset() * 60000); const today = new Date(utc + (3600000 * 8));
   const hariArr = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]; const namaHari = hariArr[today.getDay()];
   const currentMinutes = today.getHours() * 60 + today.getMinutes();
-  const data = getMapelSebelumnya(namaHari, currentMinutes);
-  if(!data) {showOverlay(`<div class="overlay-subject">Sebelumnya:</div><div class="overlay-teacher">Di luar jam pelajaran</div>`); return;}
-  const guruText = data.guru? `(${data.guru})` : "";
-  showOverlay(`<div class="overlay-subject">Sebelumnya:</div><div class="overlay-teacher">${data.mapel}</div><div class="overlay-teacher">${guruText}</div>`);
+  const data = getMapelSebelumnyaUnik(namaHari, currentMinutes);
+  if(!data) {showNotif3Baris("Sebelumnya:", "Di luar jam pelajaran", ""); return;}
+  if(data.mapel === "Istirahat" || data.mapel === "Pulang") {
+    showNotif3Baris("Sebelumnya:", data.mapel, "");
+  } else {
+    showNotif3Baris("Sebelumnya:", data.mapel, data.guru);
+  }
 }
 function showJamPulang() {
   const now = new Date(); const utc = now.getTime() + (now.getTimezoneOffset() * 60000); const today = new Date(utc + (3600000 * 8));
   const hariArr = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]; const namaHari = hariArr[today.getDay()];
   const jamPulang = getJamPulang(namaHari);
-  if(jamPulang === "-") {showOverlay(`<div class="overlay-subject">Pulang:</div><div class="overlay-teacher">Di luar jam pelajaran</div>`); return;}
-  showOverlay(`<div class="overlay-subject">Pulang:</div><div class="overlay-teacher">Jam</div><div class="overlay-time">${jamPulang} WITA</div>`);
+  if(jamPulang === "-") {showNotif3Baris("Pulang:", "Di luar jam pelajaran", ""); return;}
+  showNotif3Baris("Pulang:", `Jam ${jamPulang} WITA`, "");
 }
 function showWaliKelas() {
-  showOverlay(`<div class="overlay-subject">Wali Kelas:</div><div class="overlay-teacher">${namaWaliKelas}</div><div class="overlay-teacher">XI-Kimia Analisis</div>`);
+  showNotif3Baris("Wali Kelas:", namaWaliKelas, "XI-Kimia Analisis");
 }
 </script>
 
